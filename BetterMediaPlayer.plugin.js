@@ -46,8 +46,8 @@ module.exports = (() => {
             ],
             version: "1.0.0",
             description: "Add more features to the media player in discord",
-            github: null,
-            github_raw: null
+            github: "https://github.com/unknown81311/BetterMediaPlayer",
+            github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
         },
         defaultConfig: [
             {
@@ -100,6 +100,15 @@ module.exports = (() => {
                 }
 
                 observer() {
+                    // Set min width
+                    if (document.querySelector('.wrapper-2TxpI8')) {
+                        document.querySelectorAll('.wrapper-2TxpI8').forEach(element => {
+                            if (element.offsetWidth <= 299) {
+                                element.style.width = "300px";
+                                element.parentNode.style.width = "300px";
+                            }
+                        });
+                    }
                     // Credit FrostBird347
                     if ( this.settings.loop ) {
                         document.querySelectorAll("."+WebpackModules.getByProps('video','videoControls').videoControls).forEach(el => {
