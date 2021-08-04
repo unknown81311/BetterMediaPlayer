@@ -104,7 +104,7 @@ module.exports = (() => {
             }
         })
     }
-    start() { }
+    start() {}
     stop() { }
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
@@ -122,24 +122,45 @@ module.exports = (() => {
                     const panel = this.buildSettingsPanel()
                     panel.addListener(() => {
                         this.patching()
+                        this.css()
                     })
                     return panel.getElement()
                 }
 
-                onStart() {
-                    this.patching("start")
-                    BdApi.injectCSS(config.info.name.replace(' ','').replace(' ',''),`
+                css(mode) {
+                    if(mode === "start") {
+                        BdApi.injectCSS(`${config.info.name.replace(' ','').replace(' ','')}_active`,`
 .${WebpackModules.getByProps('video','videoControls').controlIcon}.active{
     color: var(--brand-experiment)
 }
 `
-                    )
+                        )
+                        BdApi.injectCSS(`${config.info.name.replace(' ','').replace(' ','')}_min`,`
+.${ZLibrary.WebpackModules.getByProps('embedVideo').embedVideo}>.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}>.${ZLibrary.WebpackModules.getByProps('video','wrapper').wrapper}, 
+.${ZLibrary.WebpackModules.getByProps('embedVideo').embedVideo}>.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper} {
+    min-width: calc(266px + ${this.settings.PIP === true ? '32px' : '0'} + ${this.settings.button_loop === true ? '32px' : '0'})
+}
+`
+                        )
+                    }
+                    else {
+                        if(mode === "stop") {
+                            document.getElementById(`${config.info.name.replace(' ','').replace(' ','')}_active`).remove()
+                            document.getElementById(`${config.info.name.replace(' ','').replace(' ','')}_min`).remove()
+                        }
+                        else {
+                            this.css("stop")
+                            this.css("start")
+                        }
+                    }
+                }
+
+                onStart() {
+                    this.patching("start")
+                    this.css("start")
                 }
 
                 patcher(type, data) {
-                    BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
-
-                    })
                     BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
                         res.props.children.splice(1, 0, 
                             BdApi.React.createElement("svg", {
@@ -150,7 +171,7 @@ module.exports = (() => {
                                     } else {
                                         if (e.target.id == "Loop") {
                                             e.target.classList.toggle('active')
-                                            e.target.parentNode.previousSibling.loop =  e.target.parentNode.previousSibling.loop === false ? true : false
+                                            e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
                                         } else {
                                             if (e.target.parentNode.id == "PIP") {
                                                 this.picture_picture(e.target.parentNode)
@@ -194,6 +215,7 @@ module.exports = (() => {
                 patching(mode) {
                     if(mode === "start") {
                         // Start
+                        this.patching("stop")
                         if( this.settings.PIP === true) {
                             const data = {
                                 width: 16,
@@ -244,7 +266,6 @@ module.exports = (() => {
                                 BdApi.Patcher.unpatchAll(PIP)
                             if( this.settings.button_loop === false)
                                 BdApi.Patcher.unpatchAll(loop)
-                            this.patching("stop")
                             this.patching("start")
                         }
                     }
@@ -252,7 +273,7 @@ module.exports = (() => {
 
                 onStop() {
                     this.patching("stop")
-                    document.getElementById(config.info.name.replace(' ','').replace(' ','')).remove()
+                    this.css("stop")
                 }
             }
         }
