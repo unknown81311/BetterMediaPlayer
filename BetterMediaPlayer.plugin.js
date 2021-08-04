@@ -141,8 +141,8 @@ module.exports = (() => {
 `
                         )
                         BdApi.injectCSS(`${config.info.name.replace(' ','').replace(' ','')}_min`,`
-.${ZLibrary.WebpackModules.getByProps('embedVideo').embedVideo}>.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}>.${ZLibrary.WebpackModules.getByProps('video','wrapper').wrapper}, 
-.${ZLibrary.WebpackModules.getByProps('embedVideo').embedVideo}>.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper} {
+.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a)>.${ZLibrary.WebpackModules.getByProps('video','wrapper').wrapper}, 
+.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) {
     min-width: calc(266px + ${this.settings.PIP === true ? '32px' : '0'} + ${this.settings.button_loop === true ? '32px' : '0'})
 }
 `
@@ -185,7 +185,7 @@ module.exports = (() => {
                                 width: data.width,
                                 height: data.height,
                                 viewBox: data.viewBox,
-                                class: `${WebpackModules.getByProps('video','videoControls').controlIcon}`,
+                                class: WebpackModules.getByProps('video','videoControls').controlIcon,
                                 id: type,
                                 children: [
                                     BdApi.React.createElement("path", {
