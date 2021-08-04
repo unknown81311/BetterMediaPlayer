@@ -4,7 +4,6 @@
  * @author unknown81311_&_Doggybootsy
  * @authorId 359174224809689089_&_515780151791976453
  * @version 1.0.0
- * @website https://doggybootsy.github.io/
  * @source https://github.com/unknown81311/BetterMediaPlayer
  * @updateUrl https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
 */
@@ -30,7 +29,6 @@
     }
     WScript.Quit()
 @else@*/
-
 module.exports = (() => {
     const config = {
         info: {
@@ -54,12 +52,12 @@ module.exports = (() => {
         },
         changelog: [
             {
-              "title": "Changes(s)!",
-              "type": "improved",
-              "items": [
-                "Use's react instead of dom",
-                "A lightcord warning"
-              ]
+                "title": "Change(s)...",
+                "type": "improved",
+                "items": [
+                    "Mostly use's react instead of dom",
+                    "A lightcord warning"
+                ]
             }
         ],
         defaultConfig: [
@@ -68,6 +66,13 @@ module.exports = (() => {
                 id: "button_loop",
                 name: "Add a Loop button",
                 note: "Loop videos in a simple click",
+                value: true,
+            },
+            {
+                type: "switch",
+                id: "auto_loop",
+                name: "Automatically loop videos",
+                note: "Loop videos w/o clicking a button",
                 value: true,
             },
             {
@@ -154,12 +159,10 @@ module.exports = (() => {
                         }
                     }
                 }
-
                 onStart() {
                     this.patching("start")
                     this.css("start")
                 }
-
                 patcher(type, data) {
                     BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
                         res.props.children.splice(1, 0, 
@@ -198,7 +201,6 @@ module.exports = (() => {
                         }
                     )
                 }
-
                 picture_picture(node) {
                     if(document.pictureInPictureElement)
                         document.exitPictureInPicture()
@@ -211,7 +213,6 @@ module.exports = (() => {
                         this.removeEventListener('leavepictureinpicture', onclick)
                     })
                 }
-
                 patching(mode) {
                     if(mode === "start") {
                         // Start
@@ -270,7 +271,23 @@ module.exports = (() => {
                         }
                     }
                 }
-
+                observer(mutations) {
+                    if( this.settings.auto_loop === true ) {
+                        // Doing
+                        for (const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
+                            ite.classList.add('loop')
+                            // Adding loop
+                            if(ite.previousSibling.loop === false)
+                                ite.previousSibling.loop = true
+                            // Adding class to loop button
+                            ite.childNodes.forEach(ele => {
+                                if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) {
+                                    ele.classList.add('active')
+                                }
+                            });
+                        }
+                    }
+                }
                 onStop() {
                     this.patching("stop")
                     this.css("stop")
