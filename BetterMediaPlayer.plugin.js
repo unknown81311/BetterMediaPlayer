@@ -44,15 +44,25 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.0.0",
+            version: "1.1.0",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
         },
+        changelog: [
+            {
+              "title": "Changes(s)!",
+              "type": "improved",
+              "items": [
+                "Use's react instead of dom",
+                "A lightcord warning"
+              ]
+            }
+        ],
         defaultConfig: [
             {
                 type: "switch",
-                id: "loop",
+                id: "button_loop",
                 name: "Add a Loop button",
                 note: "Loop videos in a simple click",
                 value: true,
@@ -67,7 +77,16 @@ module.exports = (() => {
 
         ]
     };
-    return !global.ZeresPluginLibrary ? class {
+    return (window.Lightcord || window.LightCord) ? class {
+        // stolen from DevilBro
+		getName () {return config.info.name;}
+		getAuthor () {return config.info.author;}
+		getVersion () {return config.info.version;}
+		getDescription () {return "Do not use LightCord!";}
+		load () {BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)");}
+		start() {}
+		stop() {}
+	} : !global.ZeresPluginLibrary ? class {
         constructor() { this._config = config; }
         load() {
             BdApi.showConfirmationModal("Library plugin is needed", 
@@ -84,122 +103,153 @@ module.exports = (() => {
     }
     start() { }
     stop() { }
-}
-: (([Plugin, Api]) => {
+    } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
             const { WebpackModules } = Api;
-            
+            const VideoControls = WebpackModules.getByProps("Controls").Controls;
+            const loop = "Loop"
+            const PIP = "PIP"
+
             return class BetterMediaPlayer extends Plugin {
+                constructor(props) {
+                    super(props)
+                }
 
                 getSettingsPanel() {
-                    return this.buildSettingsPanel().getElement();
+                    const panel = this.buildSettingsPanel();
+                    panel.addListener(() => {
+                        this.patching()
+                    });
+                    return panel.getElement();
                 }
 
                 onStart() {
-                    
+                    this.patching("start")
+                    BdApi.injectCSS(config.info.name.replace(' ','').replace(' ',''),`
+.${WebpackModules.getByProps('video','videoControls').controlIcon}.active{
+    color: var(--brand-experiment);
+}
+`
+                    );
                 }
 
-                observer() {
-                    // Set min width
-                    if (document.querySelector('.wrapper-2TxpI8')) {
-                        document.querySelectorAll('.wrapper-2TxpI8').forEach(element => {
-                            if (element.offsetWidth <= 299) {
-                                element.style.width = "300px";
-                                element.parentNode.style.width = "300px";
-                            }
-                        });
-                    }
-                    // Credit FrostBird347
-                    if ( this.settings.loop ) {
-                        document.querySelectorAll("."+WebpackModules.getByProps('video','videoControls').videoControls).forEach(el => {
-                            if (!el.classList.contains("AddedLoop")) {
-                                el.classList.add("AddedLoop")
-                                el.insertBefore(document.createElement("div"), el.children[1]);
-                                el.children[1].innerHTML = '<svg class="'+WebpackModules.getByProps('video','videoControls').controlIcon+'" aria-hidden="false" width="16" height="16" fill="currentColor" viewBox="-5 0 459 459.648"><path fill="currentColor" d="m416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0"/><path d="m32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0"/></svg>'
-                                el.children[1].id = "VideoLoopButton"
-                                el.children[1].addEventListener("click", function(preel){ 
-                                    var el = preel.srcElement
-                                    if (el.tagName.toLowerCase() == "path") {
-                                        el = el.parentElement
-                                    }
-                                    if (!el.parentElement.classList.contains("ChangingLoop")) {
-                                        el.parentElement.classList.add("ChangingLoop")
-                                        var videl = el
-                                        videl = el.parentElement.parentElement.parentElement.children[1]
-                                        if (el.style.color == "cornflowerblue") {
-                                            el.style.color = "white"
-                                            videl.loop = false;
-                                            setTimeout(() => {
-                                                setInterval(() => {
-                                                    if (videl.loop == true) {
-                                                        el.style.color = "cornflowerblue"
-                                                    }
-                                                }, 100);
-                                            }, 100);
+                patcher(type, data) {
+                    BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
+
+                    })
+                    BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
+                        res.props.children.splice(1, 0, 
+                            BdApi.React.createElement("svg", {
+                                onClick: (e) => {
+                                    // Weird issue with pip
+                                    if (e.target.id == "PIP") {
+                                        this.picture_picture(e.target)
+                                    } else {
+                                        if (e.target.id == "Loop") {
+                                            e.target.classList.toggle('active')
+                                            e.target.parentNode.previousSibling.loop =  e.target.parentNode.previousSibling.loop === false ? true : false
                                         } else {
-                                            el.style.color = "cornflowerblue"
-                                            videl.loop = true;
-                                            setTimeout(() => {
-                                                setInterval(() => {
-                                                    if (videl.loop == false) {
-                                                        el.style.color = "white"
-                                                    }
-                                                }, 100);
-                                            }, 100);
+                                            if (e.target.parentNode.id == "PIP") {
+                                                this.picture_picture(e.target.parentNode)
+                                            }
                                         }
-                                        el.parentElement.classList.remove("ChangingLoop")
+                                    }       
+                                },
+                                width: data.width,
+                                height: data.height,
+                                viewBox: data.viewBox,
+                                class: `${WebpackModules.getByProps('video','videoControls').controlIcon}`,
+                                id: type,
+                                children: [
+                                    BdApi.React.createElement("path", {
+                                        fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
+                                        d: data.path[1].d
+                                    }),
+                                    BdApi.React.createElement("path", {
+                                        fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
+                                        d: data.path[2].d
+                                    })
+                                ]
+                            }));
+                        }
+                    );
+                }
+
+                picture_picture(node) {
+                    if(document.pictureInPictureElement)
+                        document.exitPictureInPicture()
+                    else
+                        node.parentNode.previousSibling.requestPictureInPicture()
+                    node.classList.toggle('active')
+                    node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
+                        if( node.classList.contains('active') )
+                            node.classList.remove('active')
+                        this.removeEventListener('leavepictureinpicture', onclick)
+                    });
+                }
+
+                patching(mode) {
+                    if(mode === "start") {
+                        // Start
+                        if( this.settings.PIP === true) {
+                            const data = {
+                                width: 16,
+                                height: 16,
+                                viewBox: "0 0 24 24",
+                                path: {
+                                    1: {
+                                        d: 'M0 0h24v24H0V0z'
+                                    },
+                                    2: {
+                                        fill: "currentColor",
+                                        d: 'M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z'
                                     }
-                                });
+                                }
                             }
-                        });
-                    }
-                    if ( this.settings.PIP ) {
-                        document.querySelectorAll("."+WebpackModules.getByProps('video','videoControls').videoControls).forEach(el => {
-                            if (!el.classList.contains("AddedPIP")) {
-                                el.classList.add("AddedPIP")
-                                el.insertBefore(document.createElement("div"), el.children[1]);
-                                el.children[1].innerHTML = '<svg class="'+WebpackModules.getByProps('video','videoControls').controlIcon+'" aria-hidden="false" width="16" height="16" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z" fill="currentcolor"/></svg>'
-                                el.children[1].id = "TogglePIP"
-                                el.children[1].addEventListener("click", function(preel){ 
-                                    var el = preel.srcElement
-                                    if (el.tagName.toLowerCase() == "path") {
-                                        el = el.parentElement
+                            this.patcher(PIP, data)
+                        }
+                        if( this.settings.button_loop === true) {
+                            const data = {
+                                width: 16,
+                                height: 16,
+                                viewBox: "-5 0 459 459.648",
+                                path: {
+                                    1: {
+                                        fill: "currentColor",
+                                        d: 'm416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0'
+                                    },
+                                    2: {
+                                        fill: "currentColor",
+                                        d: 'm32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0'
                                     }
-                                    if (!el.parentElement.classList.contains("TogglePIP")) {
-                                        el.parentElement.classList.add("TogglePIP")
-                                        var videl = el
-                                        videl = el.parentElement.parentElement.parentElement.children[1]
-                                        if (el.style.color == "cornflowerblue") {
-                                            el.style.color = "white"
-                                            document.exitPictureInPicture()
-                                            setTimeout(() => {
-                                                setInterval(() => {
-                                                    if (document.pictureInPictureElement == videl) {
-                                                        el.style.color = "cornflowerblue"
-                                                    }
-                                                }, 100);
-                                            }, 100);
-                                        } else {
-                                            el.style.color = "cornflowerblue"
-                                            videl.requestPictureInPicture()
-                                            setTimeout(() => {
-                                                setInterval(() => {
-                                                    if (document.pictureInPictureElement == null) {
-                                                        el.style.color = "white"
-                                                    }
-                                                }, 100);
-                                            }, 100);
-                                        }
-                                        el.parentElement.classList.remove("TogglePIP")
-                                    }
-                                });
+                                }
                             }
-                        });
+                            this.patcher(loop, data)
+                        }
+                    } 
+                    else{
+                        // Stop
+                        if (mode === "stop") {
+                            if( this.settings.PIP === true)
+                                BdApi.Patcher.unpatchAll(PIP)
+                            if( this.settings.button_loop === true)
+                                BdApi.Patcher.unpatchAll(loop)
+                        } 
+                        else {
+                            // Settings
+                            if( this.settings.PIP === false)
+                                BdApi.Patcher.unpatchAll(PIP)
+                            if( this.settings.button_loop === false)
+                                BdApi.Patcher.unpatchAll(loop)
+                            this.patching("stop")
+                            this.patching("start")
+                        }
                     }
                 }
 
                 onStop() {
-                    
+                    this.patching("stop")
+                    document.getElementById(config.info.name.replace(' ','').replace(' ','')).remove()
                 }
             };
         };
