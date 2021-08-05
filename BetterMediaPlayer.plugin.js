@@ -1,11 +1,11 @@
 /**
- * @name BetterMediaPlayer
+ * @name        BetterMediaPlayer
  * @displayName adds more/better functionality to the media player
- * @author unknown81311_&_Doggybootsy
- * @authorId 359174224809689089_&_515780151791976453
- * @version 1.0.0
- * @source https://github.com/unknown81311/BetterMediaPlayer
- * @updateUrl https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
+ * @author      unknown81311_&_Doggybootsy
+ * @authorId    359174224809689089_&_515780151791976453
+ * @version     1.0.0
+ * @source      https://github.com/unknown81311/BetterMediaPlayer
+ * @updateUrl   https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
 */
 /*@cc_on
 @if (@_jscript)
@@ -69,6 +69,15 @@ module.exports = (() => {
                 value: true,
             },
             {
+                type: 'slider',
+                id: 'position_loop',
+                name: 'Position for loop',
+                note: 'Move the loop button to different spots',
+                value: 1,
+                markers: [1, 2, 3, 4, 5, 6],
+                stickToMarkers: true
+            },
+            {
                 type: "switch",
                 id: "auto_loop",
                 name: "Automatically loop videos",
@@ -80,9 +89,17 @@ module.exports = (() => {
                 id: "PIP",
                 name: "Add a PIP button",
                 note: "Picture In Picture in a simple click",
-                value: true,
+                value: true
+            },
+            {
+                type: 'slider',
+                id: 'position_PIP',
+                name: 'Position for PIP',
+                note: 'Move the PIP button to different spots',
+                value: 1,
+                markers: [1, 2, 3, 4, 5, 6],
+                stickToMarkers: true
             }
-
         ]
     }
     return (window.Lightcord || window.LightCord) ? class {
@@ -90,7 +107,7 @@ module.exports = (() => {
 		getName () {return config.info.name}
 		getAuthor () {return config.info.author}
 		getVersion () {return config.info.version}
-		getDescription () {return "Do not use LightCord!"}
+		getDescription () {return `${config.info.description}\nDo not use LightCord!`}
 		load () {BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")}
 		start() {}
 		stop() {}
@@ -128,6 +145,13 @@ module.exports = (() => {
                     panel.addListener(() => {
                         this.patching()
                         this.css()
+                        // Just make it not do 5 when one/both is disabled
+                        if(this.settings.PIP === false || this.settings.button_loop === false){
+                            if(this.settings.position_loop === 6)
+                                this.settings.position_loop = 5
+                            if(this.settings.position_PIP === 6)
+                                this.settings.position_PIP = 5
+                        }
                     })
                     return panel.getElement()
                 }
@@ -159,13 +183,78 @@ module.exports = (() => {
                         }
                     }
                 }
+                patching(mode) {
+                    if(mode === "start") {
+                        // Start
+                        this.patching("stop")
+                        if( this.settings.PIP === true) {
+                            const data = {
+                                splice: this.settings.position_PIP,
+                                width: 16,
+                                height: 16,
+                                viewBox: "0 0 24 24",
+                                path: {
+                                    1: {
+                                        d: 'M0 0h24v24H0V0z'
+                                    },
+                                    2: {
+                                        fill: "currentColor",
+                                        d: 'M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z'
+                                    }
+                                }
+                            }
+                            this.patcher(PIP, data)
+                        }
+                        if( this.settings.button_loop === true) {
+                            const data = {
+                                splice: this.settings.position_loop,
+                                width: 16,
+                                height: 16,
+                                viewBox: "-5 0 459 459.648",
+                                path: {
+                                    1: {
+                                        fill: "currentColor",
+                                        d: 'm416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0'
+                                    },
+                                    2: {
+                                        fill: "currentColor",
+                                        d: 'm32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0'
+                                    }
+                                }
+                            }
+                            this.patcher(loop, data)
+                        }
+                    } 
+                    else{
+                        // Stop
+                        if (mode === "stop") {
+                            if( this.settings.PIP === true)
+                                BdApi.Patcher.unpatchAll(PIP)
+                            if( this.settings.button_loop === true)
+                                BdApi.Patcher.unpatchAll(loop)
+                        } 
+                        else {
+                            // Settings
+                            if( this.settings.PIP === false)
+                                BdApi.Patcher.unpatchAll(PIP)
+                            if( this.settings.button_loop === false)
+                                BdApi.Patcher.unpatchAll(loop)
+                            this.patching("start")
+                        }
+                    }
+                }
                 onStart() {
-                    this.patching("start")
-                    this.css("start")
+                    try {
+                        this.patching("start")
+                        this.css("start")
+                    } catch (error) {
+                        BdApi.showToast("An error accord\nCheck console for more details", {type: "error"})
+                        console.error(error)
+                    }
                 }
                 patcher(type, data) {
                     BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
-                        res.props.children.splice(1, 0, 
+                        res.props.children.splice(data.splice, 0, 
                             BdApi.React.createElement("svg", {
                                 onClick: (e) => {
                                     // Weird issue with pip
@@ -213,68 +302,10 @@ module.exports = (() => {
                         this.removeEventListener('leavepictureinpicture', onclick)
                     })
                 }
-                patching(mode) {
-                    if(mode === "start") {
-                        // Start
-                        this.patching("stop")
-                        if( this.settings.PIP === true) {
-                            const data = {
-                                width: 16,
-                                height: 16,
-                                viewBox: "0 0 24 24",
-                                path: {
-                                    1: {
-                                        d: 'M0 0h24v24H0V0z'
-                                    },
-                                    2: {
-                                        fill: "currentColor",
-                                        d: 'M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z'
-                                    }
-                                }
-                            }
-                            this.patcher(PIP, data)
-                        }
-                        if( this.settings.button_loop === true) {
-                            const data = {
-                                width: 16,
-                                height: 16,
-                                viewBox: "-5 0 459 459.648",
-                                path: {
-                                    1: {
-                                        fill: "currentColor",
-                                        d: 'm416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0'
-                                    },
-                                    2: {
-                                        fill: "currentColor",
-                                        d: 'm32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0'
-                                    }
-                                }
-                            }
-                            this.patcher(loop, data)
-                        }
-                    } 
-                    else{
-                        // Stop
-                        if (mode === "stop") {
-                            if( this.settings.PIP === true)
-                                BdApi.Patcher.unpatchAll(PIP)
-                            if( this.settings.button_loop === true)
-                                BdApi.Patcher.unpatchAll(loop)
-                        } 
-                        else {
-                            // Settings
-                            if( this.settings.PIP === false)
-                                BdApi.Patcher.unpatchAll(PIP)
-                            if( this.settings.button_loop === false)
-                                BdApi.Patcher.unpatchAll(loop)
-                            this.patching("start")
-                        }
-                    }
-                }
                 observer(mutations) {
                     if( this.settings.auto_loop === true ) {
                         // Doing
-                        for (const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
+                        for(const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
                             ite.classList.add('loop')
                             // Adding loop
                             if(ite.previousSibling.loop === false)
@@ -284,7 +315,7 @@ module.exports = (() => {
                                 if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) {
                                     ele.classList.add('active')
                                 }
-                            });
+                            })
                         }
                     }
                 }
