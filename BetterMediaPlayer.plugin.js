@@ -1,9 +1,8 @@
 /**
  * @name        BetterMediaPlayer
- * @displayName adds more/better functionality to the media player
+ * @displayName BetterMediaPlayer
  * @author      unknown81311_&_Doggybootsy
  * @authorId    359174224809689089_&_515780151791976453
- * @version     1.0.0
  * @source      https://github.com/unknown81311/BetterMediaPlayer
  * @updateUrl   https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
 */
@@ -54,9 +53,7 @@ module.exports = (() => {
             {
                 title: "LightCord",
                 type: "improved",
-                items: [
-                    "A lightcord warning"
-                ]
+                items: ["A lightcord warning but users still can use"]
             },
             {
                 title: "Better Performance",
@@ -66,108 +63,196 @@ module.exports = (() => {
             {
                 title: "Better Settings",
                 type: "improved",
-                items: ["categories!"]
+                items: ["categories!","Demo!"]
             }
             
         ],
         defaultConfig: [
             {
-    		type: "category",
-    		id: "category_Loop",
-    		name: "Loop button",
-    		collapsible: true,
-    		shown: false,
-    		settings: [
-                {
-                    type: "switch",
-                    id: "button_loop",
-                    name: "Add a Loop button",
-                    note: "Loop videos in a simple click",
-                    value: true,
-                },
-                {
-                    type: 'slider',
-                    id: 'position_loop',
-                    name: 'Position for loop',
-                    note: 'Move the loop button to different spots',
-                    value: 1,
-                    markers: [1, 2, 3, 4, 5, 6],
-                    stickToMarkers: true
-                }
-            ]
+                type: "video", 
+                name: "Preview",
+                note: "Thanks Strencher#1044 | If the demo doesnt update just hover/click the demo"
             },
             {
-                type: "switch",
-                id: "auto_loop",
-                name: "Automatically loop videos",
-                note: "Loop videos w/o clicking a button",
-                value: true,
+                type: "category",
+                id: "category_Loop",
+                name: "Loop button",
+                collapsible: true,
+                shown: false,
+                settings: [
+                    {
+                        type: "switch",
+                        id: "button_loop",
+                        name: "Add a Loop button",
+                        note: "Loop videos in a simple click",
+                        value: true,
+                    },
+                    {
+                        type: 'slider',
+                        id: 'position_loop',
+                        name: 'Position for loop',
+                        note: 'Move the loop button to different spots',
+                        value: 1,
+                        markers: [1, 2, 3, 4, 5, 6],
+                        stickToMarkers: true
+                    }
+                ]
             },
             {
-    		type: "category",
-    		id: "category_PIP",
-    		name: "Picture In Picture button",
-    		collapsible: true,
-    		shown: false,
-    		settings: [
-                {
-                    type: "switch",
-                    id: "PIP",
-                    name: "Add a PIP button",
-                    note: "Picture In Picture in a simple click",
-                    value: true
-                },
-                {
-                    type: 'slider',
-                    id: 'position_PIP',
-                    name: 'Position for PIP',
-                    note: 'Move the PIP button to different spots',
-                    value: 1,
-                    markers: [1, 2, 3, 4, 5, 6],
-                    stickToMarkers: true
-                }
-            ]
-            }
+                type: "category",
+                id: "category_PIP",
+                name: "Picture In Picture button",
+                collapsible: true,
+                shown: false,
+                settings: [
+                    {
+                        type: "switch",
+                        id: "PIP",
+                        name: "Add a PIP button",
+                        note: "Picture In Picture in a simple click",
+                        value: true
+                    },
+                    {
+                        type: 'slider',
+                        id: 'position_PIP',
+                        name: 'Position for PIP',
+                        note: 'Move the PIP button to different spots',
+                        value: 1,
+                        markers: [1, 2, 3, 4, 5, 6],
+                        stickToMarkers: true
+                    }
+                ]
+            },
+            {
+                type: "category",
+                id: "category_misc",
+                name: "Miscellaneous",
+                collapsible: true,
+                shown: false,
+                settings: [
+                    {
+                        type: "switch",
+                        id: "auto_loop",
+                        name: "Automatically loop videos",
+                        note: "Loop videos w/o clicking a button",
+                        value: true,
+                    }
+                ]
+            },
         ]
     }
-    return (window.Lightcord || window.LightCord) ? class {
-        // stolen from DevilBro
-		getName () {return config.info.name}
-		getAuthor () {return config.info.author}
-		getVersion () {return config.info.version}
-		getDescription () {return `${config.info.description}\nDo not use LightCord!`}
-		load () {BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")}
-		start() {}
-		stop() {}
-	} : !global.ZeresPluginLibrary ? class {
+    return !global.ZeresPluginLibrary ? class {
         constructor() { this._config = config }
         load() {
+            // Let Lightcord users still use but with warning
+            if(window.Lightcord || window.LightCord && !BdApi.loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
+                BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
+                BdApi.saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
+            }
             BdApi.showConfirmationModal("Library plugin is needed", 
-            [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`], {
+            [`The library plugin neede∂d for ${config.info.name} is missing. Please click Download Now to install it.`], {
                 confirmText: "Download",
                 cancelText: "Cancel",
                 onConfirm: () => {
                     require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
                     if (error) return require("electron").shell.openExternal("https://betterdiscord.app/Download?id=9")
-                    await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r))
-                })
-            }
-        })
-    }
-    start() {}
-    stop() { }
+                    await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r))})
+                }
+            })
+        }
+        start() {}
+        stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
-            const { WebpackModules } = Api
+            const { WebpackModules, DiscordModules, Settings } = Api
             const VideoControls = WebpackModules.getByProps("Controls").Controls
             const loop = "Loop"
             const PIP = "PIP"
-
+            //Spoof channel
+            const Message = WebpackModules.getByPrototypes("addReaction")
+            const Channel = WebpackModules.getByPrototypes("isGroupDM")
+            const Timestamp = WebpackModules.getByProps("isMoment")
+            const ChannelMessage = WebpackModules.find(m => m?.type?.displayName === "ChannelMessage")
+            const SpoofChannel = new Channel({
+                channel_id: "-7",
+                name: "Better Media Player"
+            })
+            const SpoofMessage = new Message({
+                author: WebpackModules.getByProps("getCurrentUser").getCurrentUser(),
+                timestamp: Timestamp(),
+                channel_id: `-${Math.random().toString().slice(2, 3)}`,
+                attachments: [
+                    {
+                        content_type: "video/mp4",
+                        filename: "DEMO.mp4",
+                        height: 480,
+                        id: "870091678302744586",
+                        proxy_url: "https://media.discordapp.net/attachments/620279569265721381/870091678302744586/video0_21.mp4",
+                        size: Math.random().toString().slice(2, 8),
+                        spoiler: false,
+                        url: "https://cdn.discordapp.com/attachments/620279569265721381/870091678302744586/video0_21.mp4",
+                        width: 480
+                    }
+                ]
+            })
+            class VideoField extends Settings.SettingField {
+                constructor(name, note, onChange) {
+                    super(name, note, onChange, props => DiscordModules.React.createElement(ChannelMessage, props), {
+                        channel: SpoofChannel,
+                        message: SpoofMessage
+                    })
+                }
+            }
+            // Number Input
+            const Stepper = WebpackModules.getByDisplayName("NumberInputStepper")
+            class NumberInputStepper extends Settings.SettingField {
+                constructor(name, note, onChange) {
+                    super(name, note, onChange, props => DiscordModules.React.createElement(Stepper, props), {
+                        value: 1
+                    })
+                }
+            }
             return class BetterMediaPlayer extends Plugin {
                 constructor(props) {
                     super(props)
                 }
-
+                onStart() {
+                    try {
+                        this.patching("start")
+                        this.css("start")
+                    } catch (error) {
+                        BdApi.showToast("An error accord\nCheck console for more details", {type: "error"})
+                        console.error(error)
+                    }
+                }
+                onStop() {
+                    this.patching("stop")
+                    this.css("stop")
+                }
+                load() {
+                    // Let Lightcord users still use but with warning
+                    if(window.Lightcord || window.LightCord && !BdApi.loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
+                        BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
+                        BdApi.saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
+                    }
+                }
+                observer(mutations) {
+                    if( this.settings.category_misc.auto_loop === true ) {
+                        // Doing
+                        for(const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
+                            ite.classList.add('loop')
+                            // Adding loop
+                            if(ite.previousSibling.loop === false)
+                                ite.previousSibling.loop = true
+                            // Adding class to loop button
+                            ite.childNodes.forEach(ele => {
+                                if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) {
+                                    ele.classList.add('active')
+                                }
+                            })
+                        }
+                    }
+                }
                 getSettingsPanel() {
                     const panel = this.buildSettingsPanel()
                     panel.addListener(() => {
@@ -176,18 +261,27 @@ module.exports = (() => {
                     })
                     return panel.getElement()
                 }
-
+                buildSetting(data) {
+                    const {name, note, type, value, onChange, id} = data
+                    if (type == "video") return new VideoField(name, note, value, onChange, {})
+                    if (type == "NumberInputStepper") return new NumberInputStepper(name, note, onChange, {})
+                    return super.buildSetting(data)
+                }
                 css(mode) {
                     if(mode === "start") {
-                        BdApi.injectCSS(`${config.info.name.replace(' ','').replace(' ','')}_active`,`
+                        BdApi.injectCSS(config.info.name.replace(' ','').replace(' ',''),`
 .${WebpackModules.getByProps('video','videoControls').controlIcon}.active{
     color: var(--brand-experiment)
 }
-`
-                        )
-                        BdApi.injectCSS(`${config.info.name.replace(' ','').replace(' ','')}_min`,`
-.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a)>.${ZLibrary.WebpackModules.getByProps('video','wrapper').wrapper}, 
-.${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) {
+#app-mount [note="Thanks Strencher#1044 | If the demo doesnt update just hover/click the demo"] {
+    border:             var(--scrollbar-thin-thumb) 1px solid;
+    background-color:   var(--background-message-hover);
+    padding-top:        .25rem;
+    padding-bottom:     .25rem;
+    border-radius:      6px
+}
+.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a)>.${WebpackModules.getByProps('video','wrapper').wrapper}, 
+.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) {
     min-width: calc(266px + ${this.settings.category_PIP.PIP === true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})
 }
 `
@@ -195,8 +289,7 @@ module.exports = (() => {
                     }
                     else {
                         if(mode === "stop") {
-                            document.getElementById(`${config.info.name.replace(' ','').replace(' ','')}_active`).remove()
-                            document.getElementById(`${config.info.name.replace(' ','').replace(' ','')}_min`).remove()
+                            document.getElementById(config.info.name.replace(' ','').replace(' ','')).remove()
                         }
                         else {
                             this.css("stop")
@@ -264,52 +357,48 @@ module.exports = (() => {
                         }
                     }
                 }
-                onStart() {
+                patcher(type, data) {
                     try {
-                        this.patching("start")
-                        this.css("start")
+                        BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
+                            res.props.children.splice(data.splice, 0, 
+                                DiscordModules.React.createElement("svg", {
+                                    onClick: (e) => {
+                                        // Weird issue with pip
+                                        if (e.target.id == "PIP") {
+                                            this.picture_picture(e.target)
+                                        } else {
+                                            if (e.target.id == "Loop") {
+                                                e.target.classList.toggle('active')
+                                                e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
+                                            } else {
+                                                if (e.target.parentNode.id == "PIP") {
+                                                    this.picture_picture(e.target.parentNode)
+                                                }
+                                            }
+                                        }       
+                                    },
+                                    width: data.width,
+                                    height: data.height,
+                                    viewBox: data.viewBox,
+                                    class: WebpackModules.getByProps('video','videoControls').controlIcon,
+                                    id: type,
+                                    children: [
+                                        DiscordModules.React.createElement("path", {
+                                            fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
+                                            d: data.path[1].d
+                                        }),
+                                        DiscordModules.React.createElement("path", {
+                                            fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
+                                            d: data.path[2].d
+                                        })
+                                    ]
+                                }))
+                            }
+                        )
                     } catch (error) {
                         BdApi.showToast("An error accord\nCheck console for more details", {type: "error"})
                         console.error(error)
                     }
-                }
-                patcher(type, data) {
-                    BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
-                        res.props.children.splice(data.splice, 0, 
-                            BdApi.React.createElement("svg", {
-                                onClick: (e) => {
-                                    // Weird issue with pip
-                                    if (e.target.id == "PIP") {
-                                        this.picture_picture(e.target)
-                                    } else {
-                                        if (e.target.id == "Loop") {
-                                            e.target.classList.toggle('active')
-                                            e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
-                                        } else {
-                                            if (e.target.parentNode.id == "PIP") {
-                                                this.picture_picture(e.target.parentNode)
-                                            }
-                                        }
-                                    }       
-                                },
-                                width: data.width,
-                                height: data.height,
-                                viewBox: data.viewBox,
-                                class: WebpackModules.getByProps('video','videoControls').controlIcon,
-                                id: type,
-                                children: [
-                                    BdApi.React.createElement("path", {
-                                        fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
-                                        d: data.path[1].d
-                                    }),
-                                    BdApi.React.createElement("path", {
-                                        fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
-                                        d: data.path[2].d
-                                    })
-                                ]
-                            }))
-                        }
-                    )
                 }
                 picture_picture(node) {
                     if(document.pictureInPictureElement)
@@ -323,28 +412,8 @@ module.exports = (() => {
                         this.removeEventListener('leavepictureinpicture', onclick)
                     })
                 }
-                observer(mutations) {
-                    if( this.settings.auto_loop === true ) {
-                        // Doing
-                        for(const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
-                            ite.classList.add('loop')
-                            // Adding loop
-                            if(ite.previousSibling.loop === false)
-                                ite.previousSibling.loop = true
-                            // Adding class to loop button
-                            ite.childNodes.forEach(ele => {
-                                if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) {
-                                    ele.classList.add('active')
-                                }
-                            })
-                        }
-                    }
-                }
-                onStop() {
-                    this.patching("stop")
-                    this.css("stop")
-                }
             }
+            
         }
         return plugin(Plugin, Api)
     })(global.ZeresPluginLibrary.buildPlugin(config))
