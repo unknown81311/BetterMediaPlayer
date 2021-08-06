@@ -188,7 +188,7 @@ module.exports = (() => {
                         BdApi.injectCSS(`${config.info.name.replace(' ','').replace(' ','')}_min`,`
 .${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a)>.${ZLibrary.WebpackModules.getByProps('video','wrapper').wrapper}, 
 .${ZLibrary.WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) {
-    min-width: calc(266px + ${this.settings.PIP === true ? '32px' : '0'} + ${this.settings.button_loop === true ? '32px' : '0'})
+    min-width: calc(266px + ${this.settings.category_PIP.PIP === true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})
 }
 `
                         )
@@ -208,9 +208,9 @@ module.exports = (() => {
                     if(mode === "start") {
                         // Start
                         this.patching("stop")
-                        if( this.settings.PIP === true ) {
+                        if( this.settings.category_PIP.PIP === true ) {
                             const data = {
-                                splice: this.settings.position_PIP,
+                                splice: this.settings.category_PIP.position_PIP,
                                 width: 16,
                                 height: 16,
                                 viewBox: "0 0 24 24",
@@ -226,9 +226,9 @@ module.exports = (() => {
                             }
                             this.patcher(PIP, data)
                         }
-                        if( this.settings.button_loop === true) {
+                        if( this.settings.category_Loop.button_loop === true) {
                             const data = {
-                                splice: this.settings.position_loop,
+                                splice: this.settings.category_Loop.position_loop,
                                 width: 16,
                                 height: 16,
                                 viewBox: "-5 0 459 459.648",
@@ -249,16 +249,16 @@ module.exports = (() => {
                     else{
                         // Stop
                         if (mode === "stop") {
-                            if( this.settings.PIP === true)
+                            if( this.settings.category_PIP.PIP === true)
                                 BdApi.Patcher.unpatchAll(PIP)
-                            if( this.settings.button_loop === true)
+                            if( this.settings.category_Loop.button_loop === true)
                                 BdApi.Patcher.unpatchAll(loop)
                         } 
                         else {
                             // Settings
-                            if( this.settings.PIP === false)
+                            if( this.settings.category_PIP.PIP === false)
                                 BdApi.Patcher.unpatchAll(PIP)
-                            if( this.settings.button_loop === false)
+                            if( this.settings.category_Loop.button_loop === false)
                                 BdApi.Patcher.unpatchAll(loop)
                             this.patching("start")
                         }
