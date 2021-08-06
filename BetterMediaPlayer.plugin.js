@@ -45,37 +45,56 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.0",
+            version: "1.1.1",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
         },
         changelog: [
             {
-                "title": "Change(s)...",
-                "type": "improved",
-                "items": [
-                    "Mostly use's react instead of dom",
+                title: "LightCord",
+                type: "improved",
+                items: [
                     "A lightcord warning"
                 ]
+            },
+            {
+                title: "Better Performance",
+                type: "improved",
+                items: ["Dom is almost gone!"]
+            },
+            {
+                title: "Better Settings",
+                type: "improved",
+                items: ["categories!"]
             }
+            
         ],
         defaultConfig: [
             {
-                type: "switch",
-                id: "button_loop",
-                name: "Add a Loop button",
-                note: "Loop videos in a simple click",
-                value: true,
-            },
-            {
-                type: 'slider',
-                id: 'position_loop',
-                name: 'Position for loop',
-                note: 'Move the loop button to different spots',
-                value: 1,
-                markers: [1, 2, 3, 4, 5, 6],
-                stickToMarkers: true
+    		type: "category",
+    		id: "category_Loop",
+    		name: "Loop button",
+    		collapsible: true,
+    		shown: false,
+    		settings: [
+                {
+                    type: "switch",
+                    id: "button_loop",
+                    name: "Add a Loop button",
+                    note: "Loop videos in a simple click",
+                    value: true,
+                },
+                {
+                    type: 'slider',
+                    id: 'position_loop',
+                    name: 'Position for loop',
+                    note: 'Move the loop button to different spots',
+                    value: 1,
+                    markers: [1, 2, 3, 4, 5, 6],
+                    stickToMarkers: true
+                }
+            ]
             },
             {
                 type: "switch",
@@ -85,20 +104,29 @@ module.exports = (() => {
                 value: true,
             },
             {
-                type: "switch",
-                id: "PIP",
-                name: "Add a PIP button",
-                note: "Picture In Picture in a simple click",
-                value: true
-            },
-            {
-                type: 'slider',
-                id: 'position_PIP',
-                name: 'Position for PIP',
-                note: 'Move the PIP button to different spots',
-                value: 1,
-                markers: [1, 2, 3, 4, 5, 6],
-                stickToMarkers: true
+    		type: "category",
+    		id: "category_PIP",
+    		name: "Picture In Picture button",
+    		collapsible: true,
+    		shown: false,
+    		settings: [
+                {
+                    type: "switch",
+                    id: "PIP",
+                    name: "Add a PIP button",
+                    note: "Picture In Picture in a simple click",
+                    value: true
+                },
+                {
+                    type: 'slider',
+                    id: 'position_PIP',
+                    name: 'Position for PIP',
+                    note: 'Move the PIP button to different spots',
+                    value: 1,
+                    markers: [1, 2, 3, 4, 5, 6],
+                    stickToMarkers: true
+                }
+            ]
             }
         ]
     }
@@ -145,13 +173,6 @@ module.exports = (() => {
                     panel.addListener(() => {
                         this.patching()
                         this.css()
-                        // Just make it not do 5 when one/both is disabled
-                        if(this.settings.PIP === false || this.settings.button_loop === false){
-                            if(this.settings.position_loop === 6)
-                                this.settings.position_loop = 5
-                            if(this.settings.position_PIP === 6)
-                                this.settings.position_PIP = 5
-                        }
                     })
                     return panel.getElement()
                 }
@@ -187,7 +208,7 @@ module.exports = (() => {
                     if(mode === "start") {
                         // Start
                         this.patching("stop")
-                        if( this.settings.PIP === true) {
+                        if( this.settings.PIP === true ) {
                             const data = {
                                 splice: this.settings.position_PIP,
                                 width: 16,
