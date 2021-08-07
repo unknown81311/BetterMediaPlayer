@@ -8,7 +8,6 @@
 */
 /*@cc_on
 @if (@_jscript)
-    
     // Offer to self-install for clueless users that try to run this directly.
     var shell = WScript.CreateObject("WScript.Shell")
     var fs = new ActiveXObject("Scripting.FileSystemObject")
@@ -132,6 +131,28 @@ module.exports = (() => {
             },
             {
                 type: "category",
+                id: "category_misc",
+                name: "Miscellaneous",
+                collapsible: true,
+                shown: false,
+                settings: [
+                    {
+                        type: "switch",
+                        id: "auto_loop",
+                        name: "Automatically loop videos",
+                        note: "Loop videos w/o clicking a button",
+                        value: true,
+                    },
+                    {
+                        type: "switch",
+                        id: "hide_cursor",
+                        name: "Hide the cursor when the controls are hidden",
+                        value: false,
+                    },
+                ]
+            },
+            {
+                type: "category",
                 id: "category_skipping",
                 name: "Fast forward and Rewind -- DOESNT WORK YET ™",
                 collapsible: true,
@@ -150,28 +171,6 @@ module.exports = (() => {
                         name: "Rewind amount",
                         note: "How many seconds to rewind by",
                         value: 5,
-                    },
-                ]
-            },
-            {
-                type: "category",
-                id: "category_misc",
-                name: "Miscellaneous",
-                collapsible: true,
-                shown: false,
-                settings: [
-                    {
-                        type: "switch",
-                        id: "auto_loop",
-                        name: "Automatically loop videos",
-                        note: "Loop videos w/o clicking a button",
-                        value: true,
-                    },
-                    {
-                        type: "switch",
-                        id: "hide_cursor",
-                        name: "Hide the cursor when the controls are hidden",
-                        value: false,
                     },
                 ]
             },
@@ -428,7 +427,7 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                         this.patching("stop")
                         if( this.settings.category_PIP.PIP === true ) {
                             const data = {
-                                splice: this.settings.category_PIP.position_PIP,
+                                splice: this.settings.category_PIP.top_mid_PIP === true ? 1: this.settings.category_PIP.position_PIP,
                                 width: 16,
                                 height: 16,
                                 viewBox: "0 0 24 24",
@@ -530,8 +529,9 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                         if(document.pictureInPictureElement)
                             document.exitPictureInPicture()
                         else
-                            node.previousSibling.requestPictureInPicture()
-                        node.previousSibling.addEventListener('leavepictureinpicture', function() {
+                            node.nextSibling.requestPictureInPicture()
+                        node.classList.toggle('active')
+                        node.nextSibling.addEventListener('leavepictureinpicture', function() {
                             if( node.classList.contains('active') )
                                 node.classList.remove('active')
                             this.removeEventListener('leavepictureinpicture', onclick)
@@ -551,7 +551,6 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                     }
                 }
             }
-            
         }
         return plugin(Plugin, Api)
     })(global.ZeresPluginLibrary.buildPlugin(config))
