@@ -44,7 +44,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.1",
+            version: "1.1.2",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -120,7 +120,37 @@ module.exports = (() => {
                         value: 1,
                         markers: [1, 2, 3, 4, 5, 6],
                         stickToMarkers: true
-                    }
+                    },
+                    {
+                        type: "switch",
+                        id: "top_mid_PIP",
+                        name: "Move the PIP to the middle",
+                        note: "The slider will do nothing",
+                        value: false
+                    },
+                ]
+            },
+            {
+                type: "category",
+                id: "category_skipping",
+                name: "Fast forward and Rewind -- DOESNT WORK YET ™",
+                collapsible: true,
+                shown: false,
+                settings: [
+                    {
+                        type: "NumberInputStepper",
+                        id: "fast_forward",
+                        name: "Fast forwad amount",
+                        note: "How many seconds to fast forwad by",
+                        value: 5,
+                    },
+                    {
+                        type: "NumberInputStepper",
+                        id: "rewind",
+                        name: "Rewind amount",
+                        note: "How many seconds to rewind by",
+                        value: 5,
+                    },
                 ]
             },
             {
@@ -136,7 +166,13 @@ module.exports = (() => {
                         name: "Automatically loop videos",
                         note: "Loop videos w/o clicking a button",
                         value: true,
-                    }
+                    },
+                    {
+                        type: "switch",
+                        id: "hide_cursor",
+                        name: "Hide the cursor when the controls are hidden",
+                        value: false,
+                    },
                 ]
             },
         ]
@@ -165,7 +201,6 @@ module.exports = (() => {
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
             const { WebpackModules, DiscordModules, Settings } = Api
-            const VideoControls = WebpackModules.getByProps("Controls").Controls
             const loop = "Loop"
             const PIP = "PIP"
             //Spoof channel
@@ -177,24 +212,87 @@ module.exports = (() => {
                 channel_id: "-7",
                 name: "Better Media Player"
             })
+            // Collection of Urls played in the demo
+            const demo_urls = {
+                0: {/* credit to whoever posted these */},
+                1: {
+                    filename: "ae.mp4",
+                    id:         "870091678302744586",
+                    url:        "https://cdn.discordapp.com/attachments/620279569265721381/870091678302744586/video0_21.mp4",
+                    proxy_url:  "https://media.discordapp.net/attachments/620279569265721381/870091678302744586/video0_21.mp4",
+                    height:     480,
+                    width:      480
+                },
+                2: {
+                    filename: "Arch user speedrun.mp4",
+                    id:         "872790856120287232",
+                    proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/872790856120287232/video0-68.mp4",
+                    url:        "https://cdn.discordapp.com/attachments/754981916402515969/872790856120287232/video0-68.mp4",
+                    height:     225,
+                    width:      400
+                },
+                3: {
+                    filename: "Dancing duck.mp4",
+                    id:         "866825574100762624",
+                    proxy_url:  "https://media.discordapp.net/attachments/86004744966914048/866825574100762624/duck.mp4",
+                    url:        "https://cdn.discordapp.com/attachments/86004744966914048/866825574100762624/duck.mp4",
+                    height:     300,
+                    width:      209
+                },
+                4: {
+                    filename: "BD Changelog video concept.mp4",
+                    id:         "862043845989761024",
+                    proxy_url:  "https://media.discordapp.net/attachments/86004744966914048/862043845989761024/b0cs2x.mp4",
+                    url:        "https://cdn.discordapp.com/attachments/86004744966914048/862043845989761024/b0cs2x.mp4",
+                    height:     225,
+                    width:      400
+                },
+                5: {
+                    filename: "Not a rick roll.mp4",
+                    id:         "873334284814020648",
+                    proxy_url:  "https://media.discordapp.net/attachments/800235887149187096/873334284814020648/video0.mov",
+                    url:        "https://cdn.discordapp.com/attachments/800235887149187096/873334284814020648/video0.mov",
+                    height:     225,
+                    width:      400
+                },
+                6: {
+                    filename: "Try it and see.mp4",
+                    id:         "755137518210384013",
+                    proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/755137518210384013/try_it_and_see.mp4",
+                    url:        "https://cdn.discordapp.com/attachments/754981916402515969/755137518210384013/try_it_and_see.mp4",
+                    height:     225,
+                    width:      400
+                },
+                7: {
+                    filename: "Cat dance.mp4",
+                    id:         "799802803958448148",
+                    proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/799802803958448148/broo.mp4",
+                    url:        "https://cdn.discordapp.com/attachments/754981916402515969/799802803958448148/broo.mp4",
+                    height:     300,
+                    width:      300
+                }
+            }
+            // Get the number
+            const demo_url_num = Math.floor(Math.random() * Object.keys(demo_urls).pop() + 1) 
+            // Make the message
             const SpoofMessage = new Message({
                 author: WebpackModules.getByProps("getCurrentUser").getCurrentUser(),
                 timestamp: Timestamp(),
-                channel_id: `-${Math.random().toString().slice(2, 3)}`,
+                channel_id: "-7",
                 attachments: [
                     {
                         content_type: "video/mp4",
-                        filename: "DEMO.mp4",
-                        height: 480,
-                        id: "870091678302744586",
-                        proxy_url: "https://media.discordapp.net/attachments/620279569265721381/870091678302744586/video0_21.mp4",
                         size: Math.random().toString().slice(2, 8),
-                        spoiler: false,
-                        url: "https://cdn.discordapp.com/attachments/620279569265721381/870091678302744586/video0_21.mp4",
-                        width: 480
+                        filename: demo_urls[demo_url_num].filename,
+                        id: demo_urls[demo_url_num].id,
+                        url: demo_urls[demo_url_num].url,
+                        proxy_url: demo_urls[demo_url_num].proxy_url,
+                        height: demo_urls[demo_url_num].height,
+                        width: demo_urls[demo_url_num].width
                     }
                 ]
             })
+            // Video react element
             class VideoField extends Settings.SettingField {
                 constructor(name, note, onChange) {
                     super(name, note, onChange, props => DiscordModules.React.createElement(ChannelMessage, props), {
@@ -206,9 +304,9 @@ module.exports = (() => {
             // Number Input
             const Stepper = WebpackModules.getByDisplayName("NumberInputStepper")
             class NumberInputStepper extends Settings.SettingField {
-                constructor(name, note, onChange) {
-                    super(name, note, onChange, props => DiscordModules.React.createElement(Stepper, props), {
-                        value: 1
+                constructor(name, note, value, onChange) {
+                    super(name, note, onChange, props => BdApi.React.createElement(Stepper, {...props, onChange, value}), {
+                        value: value,
                     })
                 }
             }
@@ -236,8 +334,8 @@ module.exports = (() => {
                         BdApi.saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
                     }
                 }
-                observer(mutations) {
-                    if( this.settings.category_misc.auto_loop === true ) {
+                observer() {
+                    if( this.settings.category_misc.auto_loop === true && document.querySelector(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`) ) {
                         // Doing
                         for(const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
                             ite.classList.add('loop')
@@ -246,12 +344,13 @@ module.exports = (() => {
                                 ite.previousSibling.loop = true
                             // Adding class to loop button
                             ite.childNodes.forEach(ele => {
-                                if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) {
+                                if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) 
                                     ele.classList.add('active')
-                                }
                             })
                         }
                     }
+                    if (document.querySelector(`[note="${config.defaultConfig[0].note}"]`))
+                        document.querySelector(`[note="${config.defaultConfig[0].note}"]`).removeAttribute("title")
                 }
                 getSettingsPanel() {
                     const panel = this.buildSettingsPanel()
@@ -263,26 +362,52 @@ module.exports = (() => {
                 }
                 buildSetting(data) {
                     const {name, note, type, value, onChange, id} = data
-                    if (type == "video") return new VideoField(name, note, value, onChange, {})
-                    if (type == "NumberInputStepper") return new NumberInputStepper(name, note, onChange, {})
+                    if (type == "NumberInputStepper") return new NumberInputStepper(name, note, value, onChange, {})
+                    if (type == "video") return new VideoField(name, note, onChange, {})
                     return super.buildSetting(data)
                 }
                 css(mode) {
                     if(mode === "start") {
                         BdApi.injectCSS(config.info.name.replace(' ','').replace(' ',''),`
-.${WebpackModules.getByProps('video','videoControls').controlIcon}.active{
+/* Active button */
+.${WebpackModules.getByProps('video','videoControls').controlIcon}.active
+{
     color: var(--brand-experiment)
 }
-#app-mount [note="Thanks Strencher#1044 | If the demo doesnt update just hover/click the demo"] {
-    border:             var(--scrollbar-thin-thumb) 1px solid;
-    background-color:   var(--background-message-hover);
-    padding-top:        .25rem;
-    padding-bottom:     .25rem;
-    border-radius:      6px
+/* Video demo */
+#app-mount [note="${config.defaultConfig[0].note}"] 
+{
+    border: var(--scrollbar-thin-thumb) 1px solid;
+    background-color: var(--background-message-hover);
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    border-radius: 6px
 }
-.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a)>.${WebpackModules.getByProps('video','wrapper').wrapper}, 
-.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) {
+/* Min width */
+.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) > .${WebpackModules.getByProps('video','wrapper').wrapper}, 
+.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) 
+{
     min-width: calc(266px + ${this.settings.category_PIP.PIP === true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})
+}
+/* \`If this.settings.category_misc.hide_cursor === true\` */
+${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByProps('video','videoControls').wrapperControlsHidden.replace(' ','.')}
+{
+    cursor: none;
+}` : `/* 
+    false 
+*/`}
+.${WebpackModules.getByProps('video','wrapper').wrapper}>#PIP {
+    top: calc( 46px +  24px);
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    transform: translatex(-50%);
+    border-radius: 50%;
+    background: black;
+    opacity: .1
+}
+.${WebpackModules.getByProps('video','wrapper').wrapper}>#PIP:hover {
+    opacity: 1
 }
 `
                         )
@@ -317,7 +442,7 @@ module.exports = (() => {
                                     }
                                 }
                             }
-                            this.patcher(PIP, data)
+                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? WebpackModules.findByDisplayName("MediaPlayer").prototype : WebpackModules.getByProps("Controls").Controls.prototype)
                         }
                         if( this.settings.category_Loop.button_loop === true) {
                             const data = {
@@ -336,7 +461,7 @@ module.exports = (() => {
                                     }
                                 }
                             }
-                            this.patcher(loop, data)
+                            this.patcher(loop, data, WebpackModules.getByProps("Controls").Controls.prototype)
                         }
                     } 
                     else{
@@ -357,9 +482,9 @@ module.exports = (() => {
                         }
                     }
                 }
-                patcher(type, data) {
+                patcher(type, data, modu) {
                     try {
-                        BdApi.Patcher.after(type, VideoControls.prototype, "render", (thisObject, _, res) => {
+                        BdApi.Patcher.after(type, modu, "render", (thisObject, _, res) => {
                             res.props.children.splice(data.splice, 0, 
                                 DiscordModules.React.createElement("svg", {
                                     onClick: (e) => {
@@ -377,8 +502,8 @@ module.exports = (() => {
                                             }
                                         }       
                                     },
-                                    width: data.width,
-                                    height: data.height,
+                                    width: 16,
+                                    height: 16,
                                     viewBox: data.viewBox,
                                     class: WebpackModules.getByProps('video','videoControls').controlIcon,
                                     id: type,
@@ -401,16 +526,29 @@ module.exports = (() => {
                     }
                 }
                 picture_picture(node) {
-                    if(document.pictureInPictureElement)
-                        document.exitPictureInPicture()
-                    else
-                        node.parentNode.previousSibling.requestPictureInPicture()
-                    node.classList.toggle('active')
-                    node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
-                        if( node.classList.contains('active') )
-                            node.classList.remove('active')
-                        this.removeEventListener('leavepictureinpicture', onclick)
-                    })
+                    if(this.settings.category_PIP.top_mid_PIP === true) {
+                        if(document.pictureInPictureElement)
+                            document.exitPictureInPicture()
+                        else
+                            node.previousSibling.requestPictureInPicture()
+                        node.previousSibling.addEventListener('leavepictureinpicture', function() {
+                            if( node.classList.contains('active') )
+                                node.classList.remove('active')
+                            this.removeEventListener('leavepictureinpicture', onclick)
+                        })
+                    } 
+                    else {
+                        if(document.pictureInPictureElement)
+                            document.exitPictureInPicture()
+                        else
+                            node.parentNode.previousSibling.requestPictureInPicture()
+                        node.classList.toggle('active')
+                        node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
+                            if( node.classList.contains('active') )
+                                node.classList.remove('active')
+                            this.removeEventListener('leavepictureinpicture', onclick)
+                        })
+                    }
                 }
             }
             
