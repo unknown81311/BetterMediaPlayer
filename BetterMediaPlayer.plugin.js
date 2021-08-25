@@ -2,7 +2,7 @@
  * @name        BetterMediaPlayer
  * @displayName BetterMediaPlayer
  * @author      unknown81311_&_Doggybootsy
- * @authorId    359174224809689089_&_515780151791976453
+ * @authorLink  https://doggybootsy.github.io/
  * @source      https://github.com/unknown81311/BetterMediaPlayer
  * @updateUrl   https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
 */
@@ -30,7 +30,7 @@
 module.exports = (() => {
     const config = {
         info: {
-            name: "Better Media Player",
+            name: "Better  Media Player",
             authors: [
                 {
                     name: "unknown81311",
@@ -70,7 +70,7 @@ module.exports = (() => {
             {
                 type: "video", 
                 name: "Preview",
-                note: "Thanks Strencher#1044 | If the demo doesnt update just hover/click the demo"
+                note: "If the demo doesnt update just hover/click the demo"
             },
             {
                 type: "category",
@@ -92,7 +92,7 @@ module.exports = (() => {
                         name: 'Position for loop',
                         note: 'Move the loop button to different spots',
                         value: 1,
-                        markers: [1, 2, 3, 4, 5, 6],
+                        markers: [0, 1, 2, 3, 4, 5],
                         stickToMarkers: true
                     }
                 ]
@@ -117,14 +117,14 @@ module.exports = (() => {
                         name: 'Position for PIP',
                         note: 'Move the PIP button to different spots',
                         value: 1,
-                        markers: [1, 2, 3, 4, 5, 6],
+                        markers: [0, 1, 2, 3, 4, 5],
                         stickToMarkers: true
                     },
                     {
                         type: "switch",
                         id: "top_mid_PIP",
                         name: "Move the PIP to the middle",
-                        note: "The slider will do nothing",
+                        note: "Breaks audio until the player is reloaded",
                         value: false
                     },
                 ]
@@ -145,6 +145,13 @@ module.exports = (() => {
                     },
                     {
                         type: "switch",
+                        id: "min_width",
+                        name: "Set minimum width to video",
+                        note: "So the video bar can show",
+                        value: true,
+                    },
+                    {
+                        type: "switch",
                         id: "hide_cursor",
                         name: "Hide the cursor when the controls are hidden",
                         value: false,
@@ -159,11 +166,45 @@ module.exports = (() => {
                 shown: false,
                 settings: [
                     {
+                        type: "switch",
+                        id: "fast_forward_switch",
+                        name: "Fast forwad",
+                        value: true,
+                    },
+                    {
+                        type: "KeybindRecorder",
+                        id: "fast_forward_keybind",
+                        name: "Fast forwad keybind",
+                        value: [
+                            [
+                                0,
+                                80
+                            ]
+                        ],
+                    },
+                    {
                         type: "NumberInputStepper",
                         id: "fast_forward",
                         name: "Fast forwad amount",
                         note: "How many seconds to fast forwad by",
                         value: 5,
+                    },
+                    {
+                        type: "switch",
+                        id: "rewind_switch",
+                        name: "Rewind",
+                        value: true,
+                    },
+                    {
+                        type: "KeybindRecorder",
+                        id: "rewind_keybind",
+                        name: "Rewind keybind",
+                        value: [
+                            [
+                                0,
+                                79
+                            ]
+                        ],
                     },
                     {
                         type: "NumberInputStepper",
@@ -199,14 +240,28 @@ module.exports = (() => {
         stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
-            const { WebpackModules, DiscordModules, Settings } = Api
+            const { WebpackModules, Settings } = Api
             const loop = "Loop"
             const PIP = "PIP"
+            //
+            const React = BdApi.React
+            const controlIcon = WebpackModules.getByProps('video','videoControls').controlIcon
+            const videoControls = WebpackModules.getByProps('video','videoControls').videoControls
+            const _videoControls = `.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`
+            const imageWrapper = WebpackModules.getByProps('imageWrapper').imageWrapper
+            const videoWrapper = WebpackModules.getByProps('video','wrapper').wrapper
+            const markdown = WebpackModules.getByProps("markdown").markdown
+            const Controls = WebpackModules.getByProps("Controls").Controls
+            const _KeybindRecorder = WebpackModules.getByDisplayName("KeybindRecorder")
+            const MediaPlayer = WebpackModules.findByDisplayName("MediaPlayer").prototype
+            const ChannelMessage = WebpackModules.find(m => m?.type?.displayName === "ChannelMessage")
+            const _NumberInputStepper = WebpackModules.getByDisplayName("NumberInputStepper")
+            const getCurrentUser = WebpackModules.getByProps("getCurrentUser")
+            const wrapperControlsHidden = WebpackModules.getByProps('video','videoControls').wrapperControlsHidden
             //Spoof channel
             const Message = WebpackModules.getByPrototypes("addReaction")
             const Channel = WebpackModules.getByPrototypes("isGroupDM")
             const Timestamp = WebpackModules.getByProps("isMoment")
-            const ChannelMessage = WebpackModules.find(m => m?.type?.displayName === "ChannelMessage")
             const SpoofChannel = new Channel({
                 channel_id: "-7",
                 name: "Better Media Player"
@@ -272,16 +327,17 @@ module.exports = (() => {
                 }
             }
             // Get the number
-            const demo_url_num = Math.floor(Math.random() * Object.keys(demo_urls).pop() + 1) 
+            const demo_url_num = Math.floor(Math.random() * Object.keys(demo_urls).pop() + 1)
             // Make the message
             const SpoofMessage = new Message({
-                author: WebpackModules.getByProps("getCurrentUser").getCurrentUser(),
+                author: getCurrentUser.getCurrentUser(),
                 timestamp: Timestamp(),
                 channel_id: "-7",
+                content: "Thanks Strencher#1044 for the demo",
                 attachments: [
                     {
                         content_type: "video/mp4",
-                        size: Math.random().toString().slice(2, 8),
+                        size: Math.random().toString().slice(2, 9),
                         filename: demo_urls[demo_url_num].filename,
                         id: demo_urls[demo_url_num].id,
                         url: demo_urls[demo_url_num].url,
@@ -291,21 +347,28 @@ module.exports = (() => {
                     }
                 ]
             })
+            // I do not know whats happening here, but it all works
             // Video react element
             class VideoField extends Settings.SettingField {
                 constructor(name, note, onChange) {
-                    super(name, note, onChange, props => DiscordModules.React.createElement(ChannelMessage, props), {
+                    super(name, note, onChange, props => React.createElement(ChannelMessage, props), {
                         channel: SpoofChannel,
                         message: SpoofMessage
                     })
                 }
             }
             // Number Input
-            const Stepper = WebpackModules.getByDisplayName("NumberInputStepper")
             class NumberInputStepper extends Settings.SettingField {
-                constructor(name, note, value, onChange) {
-                    super(name, note, onChange, props => BdApi.React.createElement(Stepper, {...props, onChange, value}), {
-                        value: value,
+                constructor(name, note, value, onChange, saveSettings) {
+                    super(name, note, onChange, props => React.createElement(_NumberInputStepper, {...props, onChange: _.flow(onChange, saveSettings), value}), {})
+                }
+            }
+            // Keybind
+            class KeybindRecorder extends Settings.SettingField {
+                constructor(name, note, value, onChange, saveSettings) {
+                    super(name, note, onChange, props => React.createElement(_KeybindRecorder, {...props, onChange: _.flow(onChange, saveSettings), value}), {
+                        defaultValue: value,
+                        value: value
                     })
                 }
             }
@@ -318,8 +381,7 @@ module.exports = (() => {
                         this.patching("start")
                         this.css("start")
                     } catch (error) {
-                        BdApi.showToast("An error accord\nCheck console for more details", {type: "error"})
-                        console.error(error)
+                        this.error(error)
                     }
                 }
                 onStop() {
@@ -334,22 +396,28 @@ module.exports = (() => {
                     }
                 }
                 observer() {
-                    if( this.settings.category_misc.auto_loop === true && document.querySelector(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`) ) {
-                        // Doing
-                        for(const ite of document.querySelectorAll(`.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`)) {
-                            ite.classList.add('loop')
-                            // Adding loop
-                            if(ite.previousSibling.loop === false)
-                                ite.previousSibling.loop = true
-                            // Adding class to loop button
-                            ite.childNodes.forEach(ele => {
-                                if(ele.id === loop && ele.classList == `${WebpackModules.getByProps('video','videoControls').controlIcon}`) 
-                                    ele.classList.add('active')
-                            })
+                    try {
+                        if( this.settings.category_misc.auto_loop === true && document.querySelector(_videoControls) ) {
+                            // Doing
+                            for(const ite of document.querySelectorAll(_videoControls)) {
+                                ite.classList.add('loop')
+                                // Adding loop
+                                if(ite.previousSibling.loop === false)
+                                    ite.previousSibling.loop = true
+                                // Adding class to loop button
+                                ite.childNodes.forEach(ele => {
+                                    if(ele.id === loop && ele.classList == controlIcon) 
+                                        ele.classList.add('active')
+                                })
+                            }
                         }
+                        if (document.querySelector(`[note="${config.defaultConfig[0].note}"]`)){
+                            document.querySelector(`[note="${config.defaultConfig[0].note}"]`).parentNode.parentNode.parentNode.classList.add("BetterMediaPlayer__settings")
+                            document.querySelector(`[note="${config.defaultConfig[0].note}"]`).removeAttribute("title")
+                        }
+                    } catch (error) {
+                        this.error(error)
                     }
-                    if (document.querySelector(`[note="${config.defaultConfig[0].note}"]`))
-                        document.querySelector(`[note="${config.defaultConfig[0].note}"]`).removeAttribute("title")
                 }
                 getSettingsPanel() {
                     const panel = this.buildSettingsPanel()
@@ -359,62 +427,62 @@ module.exports = (() => {
                     })
                     return panel.getElement()
                 }
+                
                 buildSetting(data) {
                     const {name, note, type, value, onChange, id} = data
-                    if (type == "NumberInputStepper") return new NumberInputStepper(name, note, value, onChange, {})
+                    if (type == "NumberInputStepper") return new NumberInputStepper(name, note, value, onChange, () => {this.saveSettings()})
                     if (type == "video") return new VideoField(name, note, onChange, {})
+                    if (type == "KeybindRecorder") return new KeybindRecorder(name, note, value, onChange, () => {this.saveSettings()})
                     return super.buildSetting(data)
                 }
                 css(mode) {
                     if(mode === "start") {
-                        BdApi.injectCSS(config.info.name.replace(' ','').replace(' ',''),`
-/* Active button */
-.${WebpackModules.getByProps('video','videoControls').controlIcon}.active
-{
-    color: var(--brand-experiment)
-}
+                        BdApi.injectCSS(config.info.name.replace(' ','').replace(' ','').replace(' ',''),`/* Active button */
+.${controlIcon}.active{color: var(--brand-experiment)}
 /* Video demo */
-#app-mount [note="${config.defaultConfig[0].note}"] 
+#app-mount [note="${config.defaultConfig[0].note}"]{border: var(--scrollbar-thin-thumb) 1px solid;background-color: var(--background-message-hover);padding-top: .25rem;padding-bottom: .25rem;border-radius: 6px}
+/* Settings */
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs{display: grid;grid-gap: 10px;grid-template: "a d""b e""c f";}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(1){grid-area: a;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(2) {grid-area: b;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(3) {grid-area: c;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(4) {grid-area: d;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(5) {grid-area: e;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(6) {grid-area: f;}
+${this.settings.category_misc.min_width == true ? `/* 
+    Set minimum width to video
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    This will only show if \`Set minimum width to video\` is true 
+*/
+.${imageWrapper}:not(a) > .${videoWrapper}, .${imageWrapper}:not(a) {min-width: calc(266px + ${this.settings.category_PIP.PIP == true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})}
+/* End */` : ``}
+${this.settings.category_PIP.top_mid_PIP == true ? `/* 
+    Top middle PIP icon
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    This will only show if \`Move the PIP to the middle\` is true 
+*/
+#PIP 
 {
-    border: var(--scrollbar-thin-thumb) 1px solid;
-    background-color: var(--background-message-hover);
-    padding-top: .25rem;
-    padding-bottom: .25rem;
-    border-radius: 6px
-}
-/* Min width */
-.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) > .${WebpackModules.getByProps('video','wrapper').wrapper}, 
-.${WebpackModules.getByProps('imageWrapper').imageWrapper}:not(a) 
-{
-    min-width: calc(266px + ${this.settings.category_PIP.PIP === true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})
-}
-/* \`If this.settings.category_misc.hide_cursor === true\` */
-${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByProps('video','videoControls').wrapperControlsHidden.replace(' ','.')}
-{
-    cursor: none;
-}` : `/* 
-    false 
-*/`}
-.${WebpackModules.getByProps('video','wrapper').wrapper}>#PIP {
-    top: calc( 46px +  24px);
     position: absolute;
-    z-index: 1;
+    top: 40px;
     left: 50%;
     transform: translatex(-50%);
-    border-radius: 50%;
-    background: black;
-    opacity: .1
+    z-index: 1;
+    background-color: rgba(0,0,0,.6);
+    border-radius: 25%;
+    opacity: .05;
+    transition: opacity linear .15s
 }
-.${WebpackModules.getByProps('video','wrapper').wrapper}>#PIP:hover {
+#PIP:hover, #PIP.active
+{
     opacity: 1
 }
-`
-                        )
+/* End */` : ``}
+${this.settings.category_misc.hide_cursor == true ? `/* 
+    Hide the cursor when the controls are hidden
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    This will only show if \`Hide the cursor when the controls are hidden\` is true 
+*/
+.${wrapperControlsHidden.replace(' ','.')}{cursor: none;}
+/* End */` : ``}`)
                     }
                     else {
-                        if(mode === "stop") {
-                            document.getElementById(config.info.name.replace(' ','').replace(' ','')).remove()
-                        }
+                        if(mode === "stop" && document.getElementById(config.info.name.replace(' ','').replace(' ','').replace(' ','')))
+                            document.getElementById(config.info.name.replace(' ','').replace(' ','').replace(' ','')).remove()
                         else {
                             this.css("stop")
                             this.css("start")
@@ -427,7 +495,7 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                         this.patching("stop")
                         if( this.settings.category_PIP.PIP === true ) {
                             const data = {
-                                splice: this.settings.category_PIP.top_mid_PIP === true ? 1: this.settings.category_PIP.position_PIP,
+                                splice: this.settings.category_PIP.top_mid_PIP === true ? 1 : this.settings.category_PIP.position_PIP,
                                 width: 16,
                                 height: 16,
                                 viewBox: "0 0 24 24",
@@ -441,7 +509,7 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                                     }
                                 }
                             }
-                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? WebpackModules.findByDisplayName("MediaPlayer").prototype : WebpackModules.getByProps("Controls").Controls.prototype)
+                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls.prototype)
                         }
                         if( this.settings.category_Loop.button_loop === true) {
                             const data = {
@@ -460,7 +528,7 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                                     }
                                 }
                             }
-                            this.patcher(loop, data, WebpackModules.getByProps("Controls").Controls.prototype)
+                            this.patcher(loop, data, Controls.prototype)
                         }
                     } 
                     else{
@@ -484,71 +552,103 @@ ${this.settings.category_misc.hide_cursor === true ? `.${WebpackModules.getByPro
                 patcher(type, data, modu) {
                     try {
                         BdApi.Patcher.after(type, modu, "render", (thisObject, _, res) => {
-                            res.props.children.splice(data.splice, 0, 
-                                DiscordModules.React.createElement("svg", {
-                                    onClick: (e) => {
-                                        // Weird issue with pip
-                                        if (e.target.id == "PIP") {
-                                            this.picture_picture(e.target)
-                                        } else {
-                                            if (e.target.id == "Loop") {
-                                                e.target.classList.toggle('active')
-                                                e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
+                            // not do sounds
+                            if (res.props.className.endsWith(videoWrapper) || res.props.className === videoControls) {
+                                res.props.children.splice(data.splice, 0, 
+                                    React.createElement("svg", {
+                                        onClick: (e) => {
+                                            // Weird issue with pip
+                                            if (e.target.id == "PIP") {
+                                                this.picture_picture(e.target)
                                             } else {
-                                                if (e.target.parentNode.id == "PIP") {
-                                                    this.picture_picture(e.target.parentNode)
+                                                if (e.target.id == "Loop") {
+                                                    e.target.classList.toggle('active')
+                                                    e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
+                                                } else {
+                                                    if (e.target.parentNode.id == "PIP") {
+                                                        this.picture_picture(e.target.parentNode)
+                                                    } else {
+                                                        this.error()
+                                                    }
                                                 }
-                                            }
-                                        }       
-                                    },
-                                    width: 16,
-                                    height: 16,
-                                    viewBox: data.viewBox,
-                                    class: WebpackModules.getByProps('video','videoControls').controlIcon,
-                                    id: type,
-                                    children: [
-                                        DiscordModules.React.createElement("path", {
-                                            fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
-                                            d: data.path[1].d
-                                        }),
-                                        DiscordModules.React.createElement("path", {
-                                            fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
-                                            d: data.path[2].d
-                                        })
-                                    ]
-                                }))
+                                            }       
+                                        },
+                                        width: 16,
+                                        height: 16,
+                                        viewBox: data.viewBox,
+                                        class: controlIcon,
+                                        id: type,
+                                        children: [
+                                            React.createElement("path", {
+                                                fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
+                                                d: data.path[1].d
+                                            }),
+                                            React.createElement("path", {
+                                                fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
+                                                d: data.path[2].d
+                                            })
+                                        ]
+                                    })
+                                )
                             }
-                        )
-                    } catch (error) {
-                        BdApi.showToast("An error accord\nCheck console for more details", {type: "error"})
-                        console.error(error)
+                        }
+                    )}
+                    catch (error) {
+                        this.error(error)
                     }
                 }
                 picture_picture(node) {
-                    if(this.settings.category_PIP.top_mid_PIP === true) {
-                        if(document.pictureInPictureElement)
-                            document.exitPictureInPicture()
-                        else
-                            node.nextSibling.requestPictureInPicture()
-                        node.classList.toggle('active')
-                        node.nextSibling.addEventListener('leavepictureinpicture', function() {
-                            if( node.classList.contains('active') )
-                                node.classList.remove('active')
-                            this.removeEventListener('leavepictureinpicture', onclick)
-                        })
-                    } 
-                    else {
-                        if(document.pictureInPictureElement)
-                            document.exitPictureInPicture()
-                        else
-                            node.parentNode.previousSibling.requestPictureInPicture()
-                        node.classList.toggle('active')
-                        node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
-                            if( node.classList.contains('active') )
-                                node.classList.remove('active')
-                            this.removeEventListener('leavepictureinpicture', onclick)
-                        })
+                    try {
+                        if(this.settings.category_PIP.top_mid_PIP === true) {
+                            if(document.pictureInPictureElement)
+                                document.exitPictureInPicture()
+                            else
+                                node.nextSibling.requestPictureInPicture()
+                            node.classList.toggle('active')
+                            node.nextSibling.addEventListener('leavepictureinpicture', function() {
+                                if( node.classList.contains('active') )
+                                    node.classList.remove('active')
+                                this.removeEventListener('leavepictureinpicture', onclick)
+                            })
+                        } 
+                        else {
+                            if(document.pictureInPictureElement)
+                                document.exitPictureInPicture()
+                            else
+                                node.parentNode.previousSibling.requestPictureInPicture()
+                            node.classList.toggle('active')
+                            node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
+                                if( node.classList.contains('active') )
+                                    node.classList.remove('active')
+                                this.removeEventListener('leavepictureinpicture', onclick)
+                            })
+                        }
+                    } catch (error) {
+                        this.error(error)
                     }
+                }
+                error(e) {
+                    BdApi.showConfirmationModal(`An error accord with ${config.info.name}`, 
+                        [
+                            React.createElement("div", {
+                                children: [
+                                    React.createElement("div", {
+                                        class: markdown
+                                    }, "Wan't to reload discord?"),
+                                    React.createElement("div", {
+                                        class: markdown
+                                    }, "If this is recurring please make a issue on the github page")
+                                ]
+                            })
+                        ], {
+                            confirmText: "Reload",
+                            cancelText: "Cancel",
+                            onConfirm: () => {
+                                location.reload()
+                            }
+                        }
+                    )
+                    console.error(e)
                 }
             }
         }
