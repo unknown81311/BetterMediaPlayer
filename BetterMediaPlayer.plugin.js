@@ -43,7 +43,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.5",
+            version: "1.1.6",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -375,7 +375,7 @@ module.exports = (() => {
                 }
                 onStart() {
                     try {
-                        PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js")
+                        PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), config.info.github_raw)
                         this.patching("start")
                         this.css("start")
                     } catch (error) {this.error(error)}
@@ -393,18 +393,14 @@ module.exports = (() => {
                 }
                 observer() {
                     try {
-                        if( this.settings.category_misc.auto_loop === true && document.querySelector(_videoControls) ) {
+                        if(this.settings.category_misc.auto_loop === true && document.querySelector(_videoControls)) {
                             // Doing
                             for(const ite of document.querySelectorAll(_videoControls)) {
                                 ite.classList.add(loop)
                                 // Adding loop
-                                if(ite.previousSibling.loop === false)
-                                    ite.previousSibling.loop = true
+                                if(ite.previousSibling.loop === false) ite.previousSibling.loop = true
                                 // Adding class to loop button
-                                ite.childNodes.forEach(ele => {
-                                    if(ele.id === loop && ele.classList == controlIcon) 
-                                        ele.classList.add('active')
-                                })
+                                for (const ele of ite.childNodes) if(ele.id === loop && ele.classList == controlIcon) ele.classList.add('active')
                             }
                         }
                         if (document.querySelector(`[note="${config.defaultConfig[0].note}"]`)){
@@ -423,7 +419,6 @@ module.exports = (() => {
                     })
                     return panel.getElement()
                 }
-                
                 buildSetting(data) {
                     const {name, note, type, value, onChange, id} = data
                     if (type == "NumberInputStepper") return new NumberInputStepper(name, note, value, onChange, () => {this.saveSettings()})
@@ -539,7 +534,7 @@ module.exports = (() => {
                     if(mode === "start") {
                         // Start
                         this.patching("stop")
-                        if( this.settings.category_PIP.PIP === true ) {
+                        if(this.settings.category_PIP.PIP === true) {
                             const data = {
                                 splice: this.settings.category_PIP.top_mid_PIP === true ? 1 : this.settings.category_PIP.position_PIP,
                                 width: 16,
@@ -557,7 +552,7 @@ module.exports = (() => {
                             }
                             this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls)
                         }
-                        if( this.settings.category_Loop.button_loop === true) {
+                        if(this.settings.category_Loop.button_loop === true) {
                             const data = {
                                 splice: this.settings.category_Loop.position_loop,
                                 width: 16,
@@ -580,17 +575,12 @@ module.exports = (() => {
                     else{
                         // Stop
                         if (mode === "stop") {
-                            if( this.settings.category_PIP.PIP === true)
-                                Patcher.unpatchAll(PIP)
-                            if( this.settings.category_Loop.button_loop === true)
-                                Patcher.unpatchAll(loop)
+                            Patcher.unpatchAll(PIP)
+                            Patcher.unpatchAll(loop)
                         } 
                         else {
                             // Settings
-                            if( this.settings.category_PIP.PIP === false)
-                                Patcher.unpatchAll(PIP)
-                            if( this.settings.category_Loop.button_loop === false)
-                                Patcher.unpatchAll(loop)
+                            this.patching("stop")
                             this.patching("start")
                         }
                     }
@@ -652,20 +642,17 @@ module.exports = (() => {
                                 node.nextSibling.requestPictureInPicture()
                             node.classList.toggle('active')
                             node.nextSibling.addEventListener('leavepictureinpicture', function() {
-                                if( node.classList.contains('active') )
+                                if(node.classList.contains('active'))
                                     node.classList.remove('active')
                                 this.removeEventListener('leavepictureinpicture', onclick)
                             })
                         } 
                         else {
-                            if(document.pictureInPictureElement)
-                                document.exitPictureInPicture()
-                            else
-                                node.parentNode.previousSibling.requestPictureInPicture()
+                            if(document.pictureInPictureElement) document.exitPictureInPicture()
+                            else node.parentNode.previousSibling.requestPictureInPicture()
                             node.classList.toggle('active')
                             node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
-                                if( node.classList.contains('active') )
-                                    node.classList.remove('active')
+                                if(node.classList.contains('active')) node.classList.remove('active')
                                 this.removeEventListener('leavepictureinpicture', onclick)
                             })
                         }
@@ -690,9 +677,7 @@ module.exports = (() => {
                         ], {
                             confirmText: "Reload",
                             cancelText: "Cancel",
-                            onConfirm: () => {
-                                location.reload()
-                            }
+                            onConfirm: () => location.reload()
                         }
                     )
                 }
