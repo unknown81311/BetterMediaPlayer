@@ -43,7 +43,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.2",
+            version: "1.1.4",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -155,7 +155,7 @@ module.exports = (() => {
                         id: "hide_cursor",
                         name: "Hide the cursor when the controls are hidden",
                         value: false,
-                    },
+                    }
                 ]
             },
             {
@@ -220,19 +220,19 @@ module.exports = (() => {
     return !global.ZeresPluginLibrary ? class {
         constructor() { this._config = config }
         load() {
+            const {alert, saveData, loadData, showConfirmationModal} = BdApi
             // Let Lightcord users still use but with warning
-            if(window.Lightcord || window.LightCord && !BdApi.loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
-                BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
-                BdApi.saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
+            if(window.Lightcord || window.LightCord && !loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
+                alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
+                saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
             }
-            BdApi.showConfirmationModal("Library plugin is needed", 
-            [`The library plugin neede∂d for ${config.info.name} is missing. Please click Download Now to install it.`], {
+            showConfirmationModal("Library plugin is needed", [`The library plugin neede∂d for ${config.info.name} is missing. Please click Download Now to install it.`], {
                 confirmText: "Download",
                 cancelText: "Cancel",
                 onConfirm: () => {
                     require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
                     if (error) return require("electron").shell.openExternal("https://betterdiscord.app/Download?id=9")
-                    await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r))})
+                    await new Promise(r => require("fs").writeFile(require("path").join(Plugins.folder, "0PluginLibrary.plugin.js"), body, r))})
                 }
             })
         }
@@ -240,14 +240,14 @@ module.exports = (() => {
         stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
-            const { WebpackModules, Settings } = Api
+            const {WebpackModules, Settings, PluginUpdater} = Api
+            const {alert, saveData, injectCSS, loadData, showConfirmationModal, React, Patcher} = BdApi
             const loop = "Loop"
             const PIP = "PIP"
             //
-            const React = BdApi.React
             const controlIcon = WebpackModules.getByProps('video','videoControls').controlIcon
             const videoControls = WebpackModules.getByProps('video','videoControls').videoControls
-            const _videoControls = `.${WebpackModules.getByProps('video','videoControls').videoControls}:not(.loop)`
+            const _videoControls = `.${videoControls}:not(.loop)`
             const imageWrapper = WebpackModules.getByProps('imageWrapper').imageWrapper
             const videoWrapper = WebpackModules.getByProps('video','wrapper').wrapper
             const markdown = WebpackModules.getByProps("markdown").markdown
@@ -267,9 +267,9 @@ module.exports = (() => {
                 name: "Better Media Player"
             })
             // Collection of Urls played in the demo
-            const demo_urls = {
-                0: {/* credit to whoever posted these */},
-                1: {
+            const demo_urls = [
+                "credit to whoever posted these",
+                {
                     filename: "ae.mp4",
                     id:         "870091678302744586",
                     url:        "https://cdn.discordapp.com/attachments/620279569265721381/870091678302744586/video0_21.mp4",
@@ -277,7 +277,7 @@ module.exports = (() => {
                     height:     480,
                     width:      480
                 },
-                2: {
+                {
                     filename: "Arch user speedrun.mp4",
                     id:         "872790856120287232",
                     proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/872790856120287232/video0-68.mp4",
@@ -285,7 +285,7 @@ module.exports = (() => {
                     height:     225,
                     width:      400
                 },
-                3: {
+                {
                     filename: "Dancing duck.mp4",
                     id:         "866825574100762624",
                     proxy_url:  "https://media.discordapp.net/attachments/86004744966914048/866825574100762624/duck.mp4",
@@ -293,7 +293,7 @@ module.exports = (() => {
                     height:     300,
                     width:      209
                 },
-                4: {
+                {
                     filename: "BD Changelog video concept.mp4",
                     id:         "862043845989761024",
                     proxy_url:  "https://media.discordapp.net/attachments/86004744966914048/862043845989761024/b0cs2x.mp4",
@@ -301,7 +301,7 @@ module.exports = (() => {
                     height:     225,
                     width:      400
                 },
-                5: {
+                {
                     filename: "Not a rick roll.mp4",
                     id:         "873334284814020648",
                     proxy_url:  "https://media.discordapp.net/attachments/800235887149187096/873334284814020648/video0.mov",
@@ -309,7 +309,7 @@ module.exports = (() => {
                     height:     225,
                     width:      400
                 },
-                6: {
+                {
                     filename: "Try it and see.mp4",
                     id:         "755137518210384013",
                     proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/755137518210384013/try_it_and_see.mp4",
@@ -317,7 +317,7 @@ module.exports = (() => {
                     height:     225,
                     width:      400
                 },
-                7: {
+                {
                     filename: "Cat dance.mp4",
                     id:         "799802803958448148",
                     proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/799802803958448148/broo.mp4",
@@ -325,7 +325,7 @@ module.exports = (() => {
                     height:     300,
                     width:      300
                 }
-            }
+            ]
             // Get the number
             const demo_url_num = Math.floor(Math.random() * Object.keys(demo_urls).pop() + 1)
             // Make the message
@@ -378,11 +378,10 @@ module.exports = (() => {
                 }
                 onStart() {
                     try {
+                        PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js")
                         this.patching("start")
                         this.css("start")
-                    } catch (error) {
-                        this.error(error)
-                    }
+                    } catch (error) {this.error(error)}
                 }
                 onStop() {
                     this.patching("stop")
@@ -390,9 +389,9 @@ module.exports = (() => {
                 }
                 load() {
                     // Let Lightcord users still use but with warning
-                    if(window.Lightcord || window.LightCord && !BdApi.loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
-                        BdApi.alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
-                        BdApi.saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
+                    if(window.Lightcord || window.LightCord && !loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
+                        alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
+                        saveData(config.info.name.replace(' ',''), "ShownLightcordWarning", true)
                     }
                 }
                 observer() {
@@ -436,21 +435,69 @@ module.exports = (() => {
                     return super.buildSetting(data)
                 }
                 css(mode) {
-                    if(mode === "start") {
-                        BdApi.injectCSS(config.info.name.replace(' ','').replace(' ','').replace(' ',''),`/* Active button */
-.${controlIcon}.active{color: var(--brand-experiment)}
+                    if(mode == "start") {
+                        injectCSS(config.info.name.replace(' ','').replace(' ','').replace(' ',''),`/* 
+    Active button
+*/
+.${controlIcon}.active
+{
+    color: var(--brand-experiment)
+}
 /* Video demo */
-#app-mount [note="${config.defaultConfig[0].note}"]{border: var(--scrollbar-thin-thumb) 1px solid;background-color: var(--background-message-hover);padding-top: .25rem;padding-bottom: .25rem;border-radius: 6px}
-/* Settings */
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs{display: grid;grid-gap: 10px;grid-template: "a d""b e""c f";}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(1){grid-area: a;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(2) {grid-area: b;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(3) {grid-area: c;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(4) {grid-area: d;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(5) {grid-area: e;}.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(6) {grid-area: f;}
-${this.settings.category_misc.min_width == true ? `/* 
+/* 
+    Settings
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    BetterMediaPlayers settings
+*/
+#app-mount [note="${config.defaultConfig[0].note}"]
+{
+    border: var(--scrollbar-thin-thumb) 1px solid;
+    background-color: var(--background-message-hover);
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+    border-radius: 6px
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs
+{
+    display: grid;
+    grid-gap: 10px;
+    grid-template: "a d""b e""c f"
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(1)
+{
+    grid-area: a
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(2) 
+{
+    grid-area: b
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(3) 
+{
+    grid-area: c
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(4) 
+{
+    grid-area: d
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(5) 
+{
+    grid-area: e
+}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(6) 
+{
+    grid-area: f
+}${this.settings.category_misc.min_width == true ? `
+/* 
     Set minimum width to video
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Set minimum width to video\` is true 
 */
-.${imageWrapper}:not(a) > .${videoWrapper}, .${imageWrapper}:not(a) {min-width: calc(266px + ${this.settings.category_PIP.PIP == true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})}
-/* End */` : ``}
-${this.settings.category_PIP.top_mid_PIP == true ? `/* 
+.${imageWrapper}:not(a) > .${videoWrapper}, .${imageWrapper}:not(a) 
+{
+    min-width: calc(266px + ${this.settings.category_PIP.PIP == true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})
+}
+/* End */` : ``}${this.settings.category_PIP.top_mid_PIP == true ? `
+/* 
     Top middle PIP icon
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Move the PIP to the middle\` is true 
@@ -471,17 +518,19 @@ ${this.settings.category_PIP.top_mid_PIP == true ? `/*
 {
     opacity: 1
 }
-/* End */` : ``}
-${this.settings.category_misc.hide_cursor == true ? `/* 
+/* End */` : ``}${this.settings.category_misc.hide_cursor == true ? `
+/* 
     Hide the cursor when the controls are hidden
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Hide the cursor when the controls are hidden\` is true 
 */
-.${wrapperControlsHidden.replace(' ','.')}{cursor: none;}
-/* End */` : ``}`)
+.${wrapperControlsHidden.replace(' ', '.')} 
+{
+    cursor: none
+}` : '' }`)
                     }
                     else {
-                        if(mode === "stop" && document.getElementById(config.info.name.replace(' ','').replace(' ','').replace(' ','')))
+                        if(mode == "stop" && document.getElementById(config.info.name.replace(' ','').replace(' ','').replace(' ','')))
                             document.getElementById(config.info.name.replace(' ','').replace(' ','').replace(' ','')).remove()
                         else {
                             this.css("stop")
@@ -535,23 +584,23 @@ ${this.settings.category_misc.hide_cursor == true ? `/*
                         // Stop
                         if (mode === "stop") {
                             if( this.settings.category_PIP.PIP === true)
-                                BdApi.Patcher.unpatchAll(PIP)
+                                Patcher.unpatchAll(PIP)
                             if( this.settings.category_Loop.button_loop === true)
-                                BdApi.Patcher.unpatchAll(loop)
+                                Patcher.unpatchAll(loop)
                         } 
                         else {
                             // Settings
                             if( this.settings.category_PIP.PIP === false)
-                                BdApi.Patcher.unpatchAll(PIP)
+                                Patcher.unpatchAll(PIP)
                             if( this.settings.category_Loop.button_loop === false)
-                                BdApi.Patcher.unpatchAll(loop)
+                                Patcher.unpatchAll(loop)
                             this.patching("start")
                         }
                     }
                 }
                 patcher(type, data, modu) {
                     try {
-                        BdApi.Patcher.after(type, modu, "render", (thisObject, _, res) => {
+                        Patcher.after(type, modu, "render", (thisObject, _, res) => {
                             // not do sounds
                             if (res.props.className.endsWith(videoWrapper) || res.props.className === videoControls) {
                                 res.props.children.splice(data.splice, 0, 
@@ -628,7 +677,8 @@ ${this.settings.category_misc.hide_cursor == true ? `/*
                     }
                 }
                 error(e) {
-                    BdApi.showConfirmationModal(`An error accord with ${config.info.name}`, 
+                    console.error(e)
+                    showConfirmationModal(`An error accord with ${config.info.name}`, 
                         [
                             React.createElement("div", {
                                 children: [
@@ -648,7 +698,6 @@ ${this.settings.category_misc.hide_cursor == true ? `/*
                             }
                         }
                     )
-                    console.error(e)
                 }
             }
         }
