@@ -43,7 +43,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.4",
+            version: "1.1.5",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -244,20 +244,17 @@ module.exports = (() => {
             const {alert, saveData, injectCSS, loadData, showConfirmationModal, React, Patcher} = BdApi
             const loop = "Loop"
             const PIP = "PIP"
-            //
-            const controlIcon = WebpackModules.getByProps('video','videoControls').controlIcon
-            const videoControls = WebpackModules.getByProps('video','videoControls').videoControls
-            const _videoControls = `.${videoControls}:not(.loop)`
+            const {controlIcon, videoControls, wrapperControlsHidden} = WebpackModules.getByProps('video','videoControls')
+            const _videoControls = `.${videoControls}:not(.${loop})`
             const imageWrapper = WebpackModules.getByProps('imageWrapper').imageWrapper
             const videoWrapper = WebpackModules.getByProps('video','wrapper').wrapper
             const markdown = WebpackModules.getByProps("markdown").markdown
-            const Controls = WebpackModules.getByProps("Controls").Controls
+            const Controls = WebpackModules.getByProps("Controls").Controls.prototype
             const _KeybindRecorder = WebpackModules.getByDisplayName("KeybindRecorder")
             const MediaPlayer = WebpackModules.findByDisplayName("MediaPlayer").prototype
             const ChannelMessage = WebpackModules.find(m => m?.type?.displayName === "ChannelMessage")
             const _NumberInputStepper = WebpackModules.getByDisplayName("NumberInputStepper")
             const getCurrentUser = WebpackModules.getByProps("getCurrentUser")
-            const wrapperControlsHidden = WebpackModules.getByProps('video','videoControls').wrapperControlsHidden
             //Spoof channel
             const Message = WebpackModules.getByPrototypes("addReaction")
             const Channel = WebpackModules.getByPrototypes("isGroupDM")
@@ -399,7 +396,7 @@ module.exports = (() => {
                         if( this.settings.category_misc.auto_loop === true && document.querySelector(_videoControls) ) {
                             // Doing
                             for(const ite of document.querySelectorAll(_videoControls)) {
-                                ite.classList.add('loop')
+                                ite.classList.add(loop)
                                 // Adding loop
                                 if(ite.previousSibling.loop === false)
                                     ite.previousSibling.loop = true
@@ -502,7 +499,7 @@ module.exports = (() => {
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Move the PIP to the middle\` is true 
 */
-#PIP 
+#${PIP} 
 {
     position: absolute;
     top: 40px;
@@ -514,7 +511,7 @@ module.exports = (() => {
     opacity: .05;
     transition: opacity linear .15s
 }
-#PIP:hover, #PIP.active
+#${PIP}:hover, #${PIP}.active
 {
     opacity: 1
 }
@@ -558,7 +555,7 @@ module.exports = (() => {
                                     }
                                 }
                             }
-                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls.prototype)
+                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls)
                         }
                         if( this.settings.category_Loop.button_loop === true) {
                             const data = {
@@ -577,7 +574,7 @@ module.exports = (() => {
                                     }
                                 }
                             }
-                            this.patcher(loop, data, Controls.prototype)
+                            this.patcher(loop, data, Controls)
                         }
                     } 
                     else{
@@ -607,14 +604,14 @@ module.exports = (() => {
                                     React.createElement("svg", {
                                         onClick: (e) => {
                                             // Weird issue with pip
-                                            if (e.target.id == "PIP") {
+                                            if (e.target.id == PIP) {
                                                 this.picture_picture(e.target)
                                             } else {
-                                                if (e.target.id == "Loop") {
+                                                if (e.target.id == loop) {
                                                     e.target.classList.toggle('active')
                                                     e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
                                                 } else {
-                                                    if (e.target.parentNode.id == "PIP") {
+                                                    if (e.target.parentNode.id == PIP) {
                                                         this.picture_picture(e.target.parentNode)
                                                     } else {
                                                         this.error()
