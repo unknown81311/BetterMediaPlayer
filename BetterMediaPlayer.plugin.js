@@ -44,7 +44,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.8",
+            version: "1.1.9",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -373,7 +373,6 @@ module.exports = (() => {
                     super(props)
                 }
                 onStart() {
-                    window.DONTKILLME = (e) => this.error(e)
                     try {
                         PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), config.info.github_raw)
                         this.patching("start")
