@@ -44,7 +44,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.7",
+            version: "1.1.8",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -509,35 +509,41 @@ module.exports = (() => {
                         // Start
                         this.patching("stop")
                         if(this.settings.category_PIP.PIP === true) {
-                            this.patcher(PIP, {
+                            const data = {
                                 splice: this.settings.category_PIP.top_mid_PIP === true ? 1 : this.settings.category_PIP.position_PIP,
+                                width: 16,
+                                height: 16,
                                 viewBox: "0 0 24 24",
-                                path: [
-                                    {
+                                path: {
+                                    1: {
                                         d: 'M0 0h24v24H0V0z'
                                     },
-                                    {
+                                    2: {
                                         fill: "currentColor",
                                         d: 'M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z'
                                     }
-                                ]
-                            }, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls)
+                                }
+                            }
+                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls)
                         }
                         if(this.settings.category_Loop.button_loop === true) {
-                            this.patcher(loop, {
+                            const data = {
                                 splice: this.settings.category_Loop.position_loop,
+                                width: 16,
+                                height: 16,
                                 viewBox: "-5 0 459 459.648",
-                                path: [
-                                    {
+                                path: {
+                                    1: {
                                         fill: "currentColor",
                                         d: 'm416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0'
                                     },
-                                    {
+                                    2: {
                                         fill: "currentColor",
                                         d: 'm32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0'
                                     }
-                                ]
-                            }, Controls)
+                                }
+                            }
+                            this.patcher(loop, data, Controls)
                         }
                     } 
                     else{
@@ -550,12 +556,12 @@ module.exports = (() => {
                         }
                     }
                 }
-                patcher(type, {splice, viewBox, path}, modu) {
+                patcher(type, data, modu) {
                     try {
                         after(modu, "render", (thisObject, _, res) => {
                             // not do sounds
                             if (res.props.className.endsWith(videoWrapper) || res.props.className === videoControls) {
-                                res.props.children.splice(splice, 0, 
+                                res.props.children.splice(data.splice, 0, 
                                     React.createElement("svg", {
                                         onClick: (e) => {
                                             // Weird issue with pip
@@ -571,15 +577,19 @@ module.exports = (() => {
                                                 }
                                             }       
                                         },
-                                        width: 16, height: 16, viewBox: viewBox, class: controlIcon, id: type,
+                                        width: 16,
+                                        height: 16,
+                                        viewBox: data.viewBox,
+                                        class: controlIcon,
+                                        id: type,
                                         children: [
                                             React.createElement("path", {
-                                                fill: path[1].fill === undefined ? 'transparent' : path[1].fill,
-                                                d: path[1].d
+                                                fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
+                                                d: data.path[1].d
                                             }),
                                             React.createElement("path", {
-                                                fill: path[2].fill === undefined ? 'transparent' : path[2].fill,
-                                                d: path[2].d
+                                                fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
+                                                d: data.path[2].d
                                             })
                                         ]
                                     })
