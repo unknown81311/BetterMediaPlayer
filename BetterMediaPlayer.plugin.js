@@ -6,6 +6,7 @@
  * @source      https://github.com/unknown81311/BetterMediaPlayer
  * @updateUrl   https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
 */
+
 /*@cc_on
 @if (@_jscript)
     // Offer to self-install for clueless users that try to run this directly.
@@ -43,7 +44,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.1.6",
+            version: "1.1.7",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -169,7 +170,7 @@ module.exports = (() => {
                         type: "switch",
                         id: "fast_forward_switch",
                         name: "Fast forwad",
-                        value: true,
+                        value: true
                     },
                     {
                         type: "KeybindRecorder",
@@ -187,13 +188,13 @@ module.exports = (() => {
                         id: "fast_forward",
                         name: "Fast forwad amount",
                         note: "How many seconds to fast forwad by",
-                        value: 5,
+                        value: 5
                     },
                     {
                         type: "switch",
                         id: "rewind_switch",
                         name: "Rewind",
-                        value: true,
+                        value: true
                     },
                     {
                         type: "KeybindRecorder",
@@ -240,15 +241,14 @@ module.exports = (() => {
         stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
-            const {WebpackModules, Settings, PluginUpdater} = Api
-            const {alert, saveData, injectCSS, loadData, showConfirmationModal, React, Patcher} = BdApi
+            const {WebpackModules, Settings, PluginUpdater, Patcher: {after, unpatchAll}, DiscordModules: {React}} = Api
+            const {alert, saveData, injectCSS, loadData, showConfirmationModal} = BdApi
             const loop = "Loop"
             const PIP = "PIP"
             const {controlIcon, videoControls, wrapperControlsHidden} = WebpackModules.getByProps('video','videoControls')
             const _videoControls = `.${videoControls}:not(.${loop})`
             const imageWrapper = WebpackModules.getByProps('imageWrapper').imageWrapper
             const videoWrapper = WebpackModules.getByProps('video','wrapper').wrapper
-            const markdown = WebpackModules.getByProps("markdown").markdown
             const Controls = WebpackModules.getByProps("Controls").Controls.prototype
             const _KeybindRecorder = WebpackModules.getByDisplayName("KeybindRecorder")
             const MediaPlayer = WebpackModules.findByDisplayName("MediaPlayer").prototype
@@ -312,8 +312,7 @@ module.exports = (() => {
                     proxy_url:  "https://media.discordapp.net/attachments/754981916402515969/755137518210384013/try_it_and_see.mp4",
                     url:        "https://cdn.discordapp.com/attachments/754981916402515969/755137518210384013/try_it_and_see.mp4",
                     height:     225,
-                    width:      400
-                },
+                    width:      400},
                 {
                     filename: "Cat dance.mp4",
                     id:         "799802803958448148",
@@ -374,6 +373,7 @@ module.exports = (() => {
                     super(props)
                 }
                 onStart() {
+                    window.DONTKILLME = (e) => this.error(e)
                     try {
                         PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), config.info.github_raw)
                         this.patching("start")
@@ -431,71 +431,50 @@ module.exports = (() => {
                         injectCSS(config.info.name.replace(' ','').replace(' ','').replace(' ',''),`/* 
     Active button
 */
-.${controlIcon}.active
-{
-    color: var(--brand-experiment)
-}
+.${controlIcon}.active{
+    color: var(--brand-experiment)}
 /* Video demo */
 /* 
     Settings
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     BetterMediaPlayers settings
 */
-#app-mount [note="${config.defaultConfig[0].note}"]
-{
+#app-mount [note="${config.defaultConfig[0].note}"]{
     border: var(--scrollbar-thin-thumb) 1px solid;
     background-color: var(--background-message-hover);
     padding-top: .25rem;
     padding-bottom: .25rem;
-    border-radius: 6px
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs
-{
+    border-radius: 6px}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs{
     display: grid;
     grid-gap: 10px;
-    grid-template: "a d""b e""c f"
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(1)
-{
-    grid-area: a
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(2) 
-{
-    grid-area: b
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(3) 
-{
-    grid-area: c
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(4) 
-{
-    grid-area: d
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(5) 
-{
-    grid-area: e
-}
-.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(6) 
-{
-    grid-area: f
-}${this.settings.category_misc.min_width == true ? `
+    grid-template: "a d""b e""c f"}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(1){
+    grid-area: a}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(2){
+    grid-area: b}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(3){
+    grid-area: c}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(4){
+    grid-area: d}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(5){
+    grid-area: e}
+.plugin-form-container.BetterMediaPlayer__settings .plugin-input-group:last-child .plugin-inputs > .plugin-input-container:nth-child(6){
+    grid-area: f}${this.settings.category_misc.min_width == true ? `
 /* 
     Set minimum width to video
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Set minimum width to video\` is true 
 */
-.${imageWrapper}:not(a) > .${videoWrapper}, .${imageWrapper}:not(a) 
-{
-    min-width: calc(266px + ${this.settings.category_PIP.PIP == true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})
-}
+.${imageWrapper}:not(a) > .${videoWrapper}, .${imageWrapper}:not(a){
+    min-width: calc(266px + ${this.settings.category_PIP.PIP == true ? '32px' : '0'} + ${this.settings.category_Loop.button_loop === true ? '32px' : '0'})}
 /* End */` : ``}${this.settings.category_PIP.top_mid_PIP == true ? `
 /* 
     Top middle PIP icon
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Move the PIP to the middle\` is true 
 */
-#${PIP} 
-{
+#${PIP}{
     position: absolute;
     top: 40px;
     left: 50%;
@@ -504,22 +483,17 @@ module.exports = (() => {
     background-color: rgba(0,0,0,.6);
     border-radius: 25%;
     opacity: .05;
-    transition: opacity linear .15s
-}
-#${PIP}:hover, #${PIP}.active
-{
-    opacity: 1
-}
+    transition: opacity linear .15s}
+#${PIP}:hover, #${PIP}.active{
+    opacity: 1}
 /* End */` : ``}${this.settings.category_misc.hide_cursor == true ? `
 /* 
     Hide the cursor when the controls are hidden
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     This will only show if \`Hide the cursor when the controls are hidden\` is true 
 */
-.${wrapperControlsHidden.replace(' ', '.')} 
-{
-    cursor: none
-}` : '' }`)
+.${wrapperControlsHidden.replace(' ', '.')}{
+    cursor: none}` : '' }`)
                     }
                     else {
                         if(mode == "stop" && document.getElementById(config.info.name.replace(' ','').replace(' ','').replace(' ','')))
@@ -535,49 +509,40 @@ module.exports = (() => {
                         // Start
                         this.patching("stop")
                         if(this.settings.category_PIP.PIP === true) {
-                            const data = {
+                            this.patcher(PIP, {
                                 splice: this.settings.category_PIP.top_mid_PIP === true ? 1 : this.settings.category_PIP.position_PIP,
-                                width: 16,
-                                height: 16,
                                 viewBox: "0 0 24 24",
-                                path: {
-                                    1: {
+                                path: [
+                                    {
                                         d: 'M0 0h24v24H0V0z'
                                     },
-                                    2: {
+                                    {
                                         fill: "currentColor",
                                         d: 'M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z'
                                     }
-                                }
-                            }
-                            this.patcher(PIP, data, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls)
+                                ]
+                            }, this.settings.category_PIP.top_mid_PIP === true ? MediaPlayer : Controls)
                         }
                         if(this.settings.category_Loop.button_loop === true) {
-                            const data = {
+                            this.patcher(loop, {
                                 splice: this.settings.category_Loop.position_loop,
-                                width: 16,
-                                height: 16,
                                 viewBox: "-5 0 459 459.648",
-                                path: {
-                                    1: {
+                                path: [
+                                    {
                                         fill: "currentColor",
                                         d: 'm416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0'
                                     },
-                                    2: {
+                                    {
                                         fill: "currentColor",
                                         d: 'm32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0'
                                     }
-                                }
-                            }
-                            this.patcher(loop, data, Controls)
+                                ]
+                            }, Controls)
                         }
                     } 
                     else{
                         // Stop
-                        if (mode === "stop") {
-                            Patcher.unpatchAll(PIP)
-                            Patcher.unpatchAll(loop)
-                        } 
+                        if (mode === "stop") unpatchAll()
                         else {
                             // Settings
                             this.patching("stop")
@@ -585,43 +550,36 @@ module.exports = (() => {
                         }
                     }
                 }
-                patcher(type, data, modu) {
+                patcher(type, {splice, viewBox, path}, modu) {
                     try {
-                        Patcher.after(type, modu, "render", (thisObject, _, res) => {
+                        after(modu, "render", (thisObject, _, res) => {
                             // not do sounds
                             if (res.props.className.endsWith(videoWrapper) || res.props.className === videoControls) {
-                                res.props.children.splice(data.splice, 0, 
+                                res.props.children.splice(splice, 0, 
                                     React.createElement("svg", {
                                         onClick: (e) => {
                                             // Weird issue with pip
-                                            if (e.target.id == PIP) {
-                                                this.picture_picture(e.target)
-                                            } else {
-                                                if (e.target.id == loop) {
-                                                    e.target.classList.toggle('active')
-                                                    e.target.parentNode.previousSibling.loop = e.target.parentNode.previousSibling.loop === false ? true : false
-                                                } else {
-                                                    if (e.target.parentNode.id == PIP) {
-                                                        this.picture_picture(e.target.parentNode)
-                                                    } else {
-                                                        this.error()
+                                            if (e.target.id == PIP) this.picture_picture(e.target)
+                                            else {
+                                                if (e.target.id == loop) this.loop(e.target)
+                                                else {
+                                                    if (e.target.parentNode.id == PIP) this.picture_picture(e.target.parentNode)
+                                                    else {
+                                                        if (e.target.parentNode.id == loop) this.loop(e.target.parentNode)
+                                                        else this.error('If something happened idk')
                                                     }
                                                 }
                                             }       
                                         },
-                                        width: 16,
-                                        height: 16,
-                                        viewBox: data.viewBox,
-                                        class: controlIcon,
-                                        id: type,
+                                        width: 16, height: 16, viewBox: viewBox, class: controlIcon, id: type,
                                         children: [
                                             React.createElement("path", {
-                                                fill: data.path[1].fill === undefined ? 'transparent' : data.path[1].fill,
-                                                d: data.path[1].d
+                                                fill: path[1].fill === undefined ? 'transparent' : path[1].fill,
+                                                d: path[1].d
                                             }),
                                             React.createElement("path", {
-                                                fill: data.path[2].fill === undefined ? 'transparent' : data.path[2].fill,
-                                                d: data.path[2].d
+                                                fill: path[2].fill === undefined ? 'transparent' : path[2].fill,
+                                                d: path[2].d
                                             })
                                         ]
                                     })
@@ -632,6 +590,10 @@ module.exports = (() => {
                     catch (error) {
                         this.error(error)
                     }
+                }
+                loop(node) {
+                    node.classList.toggle('active')
+                    node.parentNode.previousSibling.loop = node.parentNode.previousSibling.loop === false ? true : false
                 }
                 picture_picture(node) {
                     try {
@@ -664,16 +626,9 @@ module.exports = (() => {
                     console.error(e)
                     showConfirmationModal(`An error accord with ${config.info.name}`, 
                         [
-                            React.createElement("div", {
-                                children: [
-                                    React.createElement("div", {
-                                        class: markdown
-                                    }, "Wan't to reload discord?"),
-                                    React.createElement("div", {
-                                        class: markdown
-                                    }, "If this is recurring please make a issue on the github page")
-                                ]
-                            })
+                            "Wan't to reload discord?",
+                            "If this is recurring please make a issue on the github page.",
+                            "Check console for more info."
                         ], {
                             confirmText: "Reload",
                             cancelText: "Cancel",
