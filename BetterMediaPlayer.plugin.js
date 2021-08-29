@@ -5,7 +5,7 @@
  * @authorLink https://betterdiscord.app/plugin?id=377
  * @source https://github.com/unknown81311/BetterMediaPlayer
  * @updateUrl https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js
- * @invite https://discord.gg/yYJA3qQE5F
+ * @invite yYJA3qQE5F
  */
 
 /*@cc_on
@@ -45,7 +45,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.2.0",
+            version: "1.2.1",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -604,16 +604,15 @@ module.exports = (() => {
                 picture_picture(node) {
                     try {
                         if(this.settings.category_PIP.top_mid_PIP === true) {
-                            if(document.pictureInPictureElement)
-                                document.exitPictureInPicture()
-                            else
-                                node.nextSibling.requestPictureInPicture()
+                            if(document.pictureInPictureElement) document.exitPictureInPicture()
+                            else ode.nextSibling.requestPictureInPicture()
                             node.classList.toggle('active')
                             node.nextSibling.addEventListener('leavepictureinpicture', function() {
                                 if(node.classList.contains('active'))
                                     node.classList.remove('active')
                                 this.removeEventListener('leavepictureinpicture', onclick)
                             })
+                            
                         } 
                         else {
                             if(document.pictureInPictureElement) document.exitPictureInPicture()
