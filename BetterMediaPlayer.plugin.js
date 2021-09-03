@@ -45,7 +45,7 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.2.1",
+            version: "1.2.2",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
@@ -159,63 +159,63 @@ module.exports = (() => {
                     }
                 ]
             },
-            // {
-            //     type: "category",
-            //     id: "category_skipping",
-            //     name: "Fast forward and Rewind -- DOESNT WORK YET ™",
-            //     collapsible: true,
-            //     shown: false,
-            //     settings: [
-            //         {
-            //             type: "switch",
-            //             id: "fast_forward_switch",
-            //             name: "Fast forwad",
-            //             value: true
-            //         },
-            //         {
-            //             type: "KeybindRecorder",
-            //             id: "fast_forward_keybind",
-            //             name: "Fast forwad keybind",
-            //             value: [
-            //                 [
-            //                     0,
-            //                     80
-            //                 ]
-            //             ],
-            //         },
-            //         {
-            //             type: "NumberInputStepper",
-            //             id: "fast_forward",
-            //             name: "Fast forwad amount",
-            //             note: "How many seconds to fast forwad by",
-            //             value: 5
-            //         },
-            //         {
-            //             type: "switch",
-            //             id: "rewind_switch",
-            //             name: "Rewind",
-            //             value: true
-            //         },
-            //         {
-            //             type: "KeybindRecorder",
-            //             id: "rewind_keybind",
-            //             name: "Rewind keybind",
-            //             value: [
-            //                 [
-            //                     0,
-            //                     79
-            //                 ]
-            //             ],
-            //         },
-            //         {
-            //             type: "NumberInputStepper",
-            //             id: "rewind",
-            //             name: "Rewind amount",
-            //             note: "How many seconds to rewind by",
-            //             value: 5,
-            //         },
-            //     ]
-            // },
+            {
+                type: "category",
+                id: "category_skipping",
+                name: "Fast forward and Rewind -- DOESNT WORK YET ™",
+                collapsible: true,
+                shown: false,
+                settings: [
+                    {
+                        type: "switch",
+                        id: "fast_forward_switch",
+                        name: "Fast forwad",
+                        value: true
+                    },
+                    {
+                        type: "KeybindRecorder",
+                        id: "fast_forward_keybind",
+                        name: "Fast forwad keybind",
+                        value: [
+                            [
+                                0,
+                                80
+                            ]
+                        ],
+                    },
+                    {
+                        type: "NumberInputStepper",
+                        id: "fast_forward",
+                        name: "Fast forwad amount",
+                        note: "How many seconds to fast forwad by",
+                        value: 5
+                    },
+                    {
+                        type: "switch",
+                        id: "rewind_switch",
+                        name: "Rewind",
+                        value: true
+                    },
+                    {
+                        type: "KeybindRecorder",
+                        id: "rewind_keybind",
+                        name: "Rewind keybind",
+                        value: [
+                            [
+                                0,
+                                79
+                            ]
+                        ],
+                    },
+                    {
+                        type: "NumberInputStepper",
+                        id: "rewind",
+                        name: "Rewind amount",
+                        note: "How many seconds to rewind by",
+                        value: 5
+                    },
+                ]
+            },
         ]
     }
     return !global.ZeresPluginLibrary ? class {
@@ -241,8 +241,9 @@ module.exports = (() => {
         stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
-            const {WebpackModules, Settings, PluginUpdater, Patcher: {after, unpatchAll}, DiscordModules: {React: {createElement}}} = Api
+            const {WebpackModules, Settings: {SettingField}, Patcher: {after, unpatchAll}, DiscordModules: {React: {createElement}}} = Api
             const {alert, saveData, injectCSS, loadData, showConfirmationModal, Plugins: {get}} = BdApi
+            const {error} = console
             const loop = "Loop"
             const PIP = "PIP"
             const {controlIcon, videoControls, wrapperControlsHidden} = WebpackModules.getByProps('video','videoControls')
@@ -345,7 +346,7 @@ module.exports = (() => {
             })
             // I do not know whats happening here, but it all works
             // Video react element
-            class VideoField extends Settings.SettingField {
+            class VideoField extends SettingField {
                 constructor(name, note, onChange) {
                     super(name, note, onChange, props => createElement(ChannelMessage, props), {
                         channel: SpoofChannel,
@@ -354,13 +355,13 @@ module.exports = (() => {
                 }
             }
             // Number Input
-            class NumberInputStepper extends Settings.SettingField {
+            class NumberInputStepper extends SettingField {
                 constructor(name, note, value, onChange, saveSettings) {
                     super(name, note, onChange, props => createElement(_NumberInputStepper, {...props, onChange: _.flow(onChange, saveSettings), value}), {})
                 }
             }
             // Keybind
-            class KeybindRecorder extends Settings.SettingField {
+            class KeybindRecorder extends SettingField {
                 constructor(name, note, value, onChange, saveSettings) {
                     super(name, note, onChange, props => createElement(_KeybindRecorder, {...props, onChange: _.flow(onChange, saveSettings), value}), {
                         defaultValue: value,
@@ -374,6 +375,7 @@ module.exports = (() => {
                 }
                 onStart() {
                     try {
+                        window.BetterMediaPlayerErrorFunction = (e) => this.error(e)
                         // Let Lightcord users still use but with warning
                         if(window.Lightcord || window.LightCord && !loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
                             alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
@@ -384,6 +386,7 @@ module.exports = (() => {
                     } catch (error) {this.error(error)}
                 }
                 onStop() {
+                    if(document.pictureInPictureElement) document.exitPictureInPicture()
                     this.patching("stop")
                     this.css("stop")
                 }
@@ -598,40 +601,44 @@ module.exports = (() => {
                     }
                 }
                 loop(node) {
-                    node.classList.toggle('active')
-                    node.parentNode.previousSibling.loop = node.parentNode.previousSibling.loop === false ? true : false
+                    try {
+                        node.classList.toggle('active')
+                        node.parentNode.previousSibling.loop = node.parentNode.previousSibling.loop === false ? true : false
+                    } catch (error) {
+                        this.error(error)
+                    }
                 }
                 picture_picture(node) {
                     try {
                         if(this.settings.category_PIP.top_mid_PIP === true) {
                             if(document.pictureInPictureElement) document.exitPictureInPicture()
-                            else ode.nextSibling.requestPictureInPicture()
+                            else node.nextSibling.requestPictureInPicture()
                             node.classList.toggle('active')
-                            node.nextSibling.addEventListener('leavepictureinpicture', function() {
-                                if(node.classList.contains('active'))
-                                    node.classList.remove('active')
-                                this.removeEventListener('leavepictureinpicture', onclick)
-                            })
-                            
+                            node.nextSibling.addEventListener('leavepictureinpicture', leavepip)
+                            function leavepip() {
+                                if(node.classList.contains('active')) node.classList.remove('active')
+                                node.nextSibling.removeEventListener('leavepictureinpicture', leavepip)
+                            }
                         } 
                         else {
                             if(document.pictureInPictureElement) document.exitPictureInPicture()
                             else node.parentNode.previousSibling.requestPictureInPicture()
                             node.classList.toggle('active')
-                            node.parentNode.previousSibling.addEventListener('leavepictureinpicture', function() {
+                            node.parentNode.previousSibling.addEventListener('leavepictureinpicture', leavepip)
+                            function leavepip() {
                                 if(node.classList.contains('active')) node.classList.remove('active')
-                                this.removeEventListener('leavepictureinpicture', onclick)
-                            })
+                                node.parentNode.previousSibling.removeEventListener('leavepictureinpicture', leavepip)
+                            }
                         }
                     } catch(e){this.error(e)}
                 }
                 error(e) {
-                    console.error(e)
+                    error(e)
                     showConfirmationModal(`An error accord with ${config.info.name}`, 
                         [
                             "Wan't to reload discord?",
                             "If this is recurring please make a issue on the github page.",
-                            `Join the support server ${get("BetterMediaPlayer").invite}`,
+                            `Join the support server https://discord.gg/${get("BetterMediaPlayer").invite}`,
                             `\`\`\`js\n${e}\n\`\`\``
                         ], {
                             confirmText: "Reload",
