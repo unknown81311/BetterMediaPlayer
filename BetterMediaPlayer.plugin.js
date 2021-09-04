@@ -45,26 +45,16 @@ module.exports = (() => {
                     github_username: "Doggybootsy"
                 }
             ],
-            version: "1.2.2",
+            version: "1.2.3",
             description: "Add more features to the media player in discord",
             github: "https://github.com/unknown81311/BetterMediaPlayer",
             github_raw: "https://raw.githubusercontent.com/unknown81311/BetterMediaPlayer/main/BetterMediaPlayer.plugin.js"
         },
         changelog: [
             {
-                title: "Changelogs!",
+                title: "Removed",
                 type: "improved",
-                items: ["Added them back"]
-            },
-            {
-                title: "Removal!",
-                type: "added",
-                items: ["Removed Fast forward and Rewind category"]
-            },
-            {
-                title: "Loop!",
-                type: "fixed",
-                items: ["Fixed the loop button causing a fake error if the svg was clicked"]
+                items: ["Remove accidental window function"]
             }
         ],
         defaultConfig: [
@@ -375,7 +365,6 @@ module.exports = (() => {
                 }
                 onStart() {
                     try {
-                        window.BetterMediaPlayerErrorFunction = (e) => this.error(e)
                         // Let Lightcord users still use but with warning
                         if(window.Lightcord || window.LightCord && !loadData(config.info.name.replace(' ',''), "ShownLightcordWarning")) {
                             alert("Attention!", "By using LightCord you are risking your Discord Account, due to using a 3rd Party Client. Switch to an official Discord Client (https://discord.com/) with the proper BD Injection (https://betterdiscord.app/)")
