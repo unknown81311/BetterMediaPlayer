@@ -28,11 +28,11 @@ module.exports = class Settings extends React.PureComponent {
                         defaultValue={ getSetting("position_loop", 1) }
                         onValueChange={ v => updateSetting("position_loop", v) }
                         note="Move the loop button to different spots"
-                    >Position for loop</SliderInput>
+                    >Position for the loop button</SliderInput>
                     <SwitchItem value={getSetting("auto_loop", true)} note="Automatically loop videos" onChange={() => toggleSetting("auto_loop")}>Auto loop</SwitchItem>
                 </Group>
                 <Group name="Picture in picture" description="Picture in picture configuration">
-                    <SwitchItem value={getSetting("button_pip", true)} note="Loop videos in a simple click" onChange={() => toggleSetting("button_pip")}>Loop button</SwitchItem>
+                    <SwitchItem value={getSetting("button_pip", true)} note="Picture In Picture in a simple click" onChange={() => toggleSetting("button_pip")}>PIP button</SwitchItem>
                     <SliderInput
                         stickToMarkers
                         minValue={ 0 }
@@ -42,7 +42,7 @@ module.exports = class Settings extends React.PureComponent {
                         defaultValue={ getSetting("position_pip", 1) }
                         onValueChange={ v => updateSetting("position_pip", v) }
                         note="Move the loop button to different spots"
-                    >Position for loop</SliderInput>
+                    >Position for the PIP button</SliderInput>
                 </Group>
             </>
 		)
