@@ -1,35 +1,18 @@
-const { SwitchItem, Category, SliderInput } = require('powercord/components/settings');
-const { React } = require('powercord/webpack');
-class Switch extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = { toggled: props.value }
-    }
-    render() {
-        return (
-            <SwitchItem value={this.state.toggled} note={this.props.note} onChange={(value) => {
-                this.setState({ toggled: value })
-                this.props.updateSetting("button_loop", value)
-            }}>{this.props.children}</SwitchItem>
-        )
-    } 
-}
+const { SwitchItem, Category, SliderInput } = require('powercord/components/settings')
+const { React } = require('powercord/webpack')
 class Group extends React.Component {
     constructor(props) {
         super(props)
         this.state = { toggled: false }
     }
     render() {
-        return (
-            <Category name={this.props.name} description={this.props.description} opened={this.state.toggled} onChange={() => this.setState({ toggled: !this.state.toggled })}>{this.props.children}</Category>
-        )
+        return (<Category name={this.props.name} description={this.props.description} opened={this.state.toggled} onChange={() => this.setState({ toggled: !this.state.toggled })}>{this.props.children}</Category>)
     } 
 }
 module.exports = class Settings extends React.PureComponent {
 	constructor(props) {
-		super(props);
+		super(props)
 	}
-
 	render() {
 		const { getSetting, updateSetting, toggleSetting } = this.props
 		return (

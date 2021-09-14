@@ -54,9 +54,7 @@ module.exports = class BetterMediaPlayer extends Plugin {
     		label: "Better Media Player",
 	      	render: Settings
     	})
-
 		uninject("BetterMediaPlayer")
-
 		inject("BetterMediaPlayer", Contols.prototype, "render", (_, res) => {
 			if(get("button_pip", true) === true) res.props.children.splice(get("position_pip", 1), 0, React.createElement(PIP_SVG, {instance: this}))
 			if(get("button_loop", true) === true) res.props.children.splice(get("position_loop", 1), 0, React.createElement(LOOP_SVG, {instance: this}))
