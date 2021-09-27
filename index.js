@@ -1,69 +1,50 @@
 const { Plugin } = require("powercord/entities")
-const { React, getModule } = require("powercord/webpack")
+const { React, getModule, getModuleByDisplayName } = require("powercord/webpack")
 const { inject, uninject } = require("powercord/injector")
 const Settings = require("./components/settings")
-// Modules
-const PIP_SVG = require("./components/pip")
-const LOOP_SVG = require("./components/loop")
-const Contols = require("powercord/webpack").getModule([ "Controls" ], false).Controls
+const { PipIcon, LoopIcon } = require("./components/Buttons")
+const Contols = getModule([ "Controls" ], false).Controls
+const MediaPlayer = getModuleByDisplayName("MediaPlayer", false)
+const { ModalRoot, ModalSize } = getModule(["ModalRoot"], false)
+const { openModal } = getModule(["openModal"], false)
+const Alert = require("./components/Alert")
 
 module.exports = class BetterMediaPlayer extends Plugin {
 	constructor() {
 		super()
 	}
-	observer() {
-		const { get } = this.settings
-		const callback = function(mutationsList, observer) {
-			for(const mutation of mutationsList) {
-				if (get("auto_loop", true) === true && document.querySelector("#Loop:not(.looped)")) {
-					for (const ele of document.querySelectorAll("#Loop:not(.looped)")) {
-						ele.classList.add("looped")
-						ele.classList.add("active")
-						ele.parentElement.previousSibling.loop = true
-					}
-				}
-			}
-		}
-		this._observer = new MutationObserver(callback)
-		this._observer.observe(document.getElementById('app-mount'), { attributes: true, childList: true, subtree: true })
-	}
-	PIP(node) {
-		try {
-			if(document.pictureInPictureElement) document.exitPictureInPicture()
-			else node.parentNode.previousSibling.requestPictureInPicture()
-			node.classList.toggle("active")
-			node.parentNode.previousSibling.addEventListener("leavepictureinpicture", leavepip)
-			function leavepip() {
-				if(node.classList.contains("active")) node.classList.remove("active")
-				node.parentNode.previousSibling.removeEventListener("leavepictureinpicture", leavepip)
-			}
-		} catch(e){}
-	}
-	Loop(node) {
-		try {
-			node.classList.toggle("active")
-			node.parentNode.previousSibling.loop = node.parentNode.previousSibling.loop === false ? true : false
-		} catch (e) {}
+	error(e) {
+		console.error(this.props.error)
+		openModal(props => {
+			return React.createElement(ModalRoot, Object.assign({
+				size: ModalSize.SMALL,
+				children: React.createElement(Alert, {error: e, onClose: props.onClose})
+			}, props))
+		})
 	}
 	startPlugin() {
 		const { get } = this.settings
-		this.loadStylesheet("./components/index.css")
-		this.observer()
 	    powercord.api.settings.registerSettings("BetterMediaPlayer-settings", {
     	  	category: this.entityID,
     		label: "Better Media Player",
 	      	render: Settings
     	})
-		uninject("BetterMediaPlayer")
-		inject("BetterMediaPlayer", Contols.prototype, "render", (_, res) => {
-			if(get("button_pip", true) === true) res.props.children.splice(get("position_pip", 1), 0, React.createElement(PIP_SVG, {instance: this}))
-			if(get("button_loop", true) === true) res.props.children.splice(get("position_loop", 1), 0, React.createElement(LOOP_SVG, {instance: this}))
+		inject("BetterMediaPlayer-Contols", Contols.prototype, "render", (_, res) => {
+			if(get("button_pip", true) === true) 
+				res.props.children.splice(get("position_pip", 1), 0, React.createElement(PipIcon, {instance: this}))
+			if(get("button_loop", true) === true) 
+				res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop", true)}))
+			return res
+		})
+		inject("BetterMediaPlayer-AutoLoop", MediaPlayer.prototype, "renderVideo", (_, res) => {
+			if(get("auto_loop", true)) 
+				res.props.loop = true
 			return res
 		})
 	}
 	pluginWillUnload() {
-		this._observer.disconnect()
         powercord.api.settings.unregisterSettings("BetterMediaPlayer-settings")
-		uninject("BetterMediaPlayer")
+		uninject("BetterMediaPlayer-Contols")
+		uninject("BetterMediaPlayer-AutoLoop")
 	}
 }

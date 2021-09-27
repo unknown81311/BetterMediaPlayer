@@ -1,5 +1,6 @@
 const { SwitchItem, Category, SliderInput } = require('powercord/components/settings')
 const { React } = require('powercord/webpack')
+const FakeMessage = require("./FakeMessage")
 class Group extends React.Component {
     constructor(props) {
         super(props)
@@ -17,6 +18,9 @@ module.exports = class Settings extends React.PureComponent {
 		const { getSetting, updateSetting, toggleSetting } = this.props
 		return (
             <>
+                <Group name="Demo" description="Fake message to see how it works">
+                    <FakeMessage />
+                </Group>
                 <Group name="Loop" description="Loop configuration">
                     <SwitchItem value={getSetting("button_loop", true)} note="Loop videos in a simple click" onChange={() => toggleSetting("button_loop")}>Loop button</SwitchItem>
                     <SliderInput
