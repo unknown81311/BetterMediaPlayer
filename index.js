@@ -37,7 +37,12 @@ module.exports = class BetterMediaPlayer extends Plugin {
 				res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop", true)}))
 			return res
 		})
-		inject("BetterMediaPlayer-AutoLoop", MediaPlayer.prototype, "renderVideo", (_, res) => {
+		inject("BetterMediaPlayer-AutoLoopVideo", MediaPlayer.prototype, "renderVideo", (_, res) => {
+			if(get("auto_loop", true)) 
+				res.props.loop = true
+			return res
+		})
+		inject("BetterMediaPlayer-AutoLoopAudio", MediaPlayer.prototype, "renderAudio", (_, res) => {
 			if(get("auto_loop", true)) 
 				res.props.loop = true
 			return res
@@ -46,6 +51,7 @@ module.exports = class BetterMediaPlayer extends Plugin {
 	pluginWillUnload() {
         powercord.api.settings.unregisterSettings("BetterMediaPlayer-settings")
 		uninject("BetterMediaPlayer-Contols")
-		uninject("BetterMediaPlayer-AutoLoop")
+		uninject("BetterMediaPlayer-AutoLoopVideo")
+		uninject("BetterMediaPlayer-AutoLoopAudio")
 	}
 }
