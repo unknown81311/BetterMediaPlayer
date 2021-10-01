@@ -30,12 +30,11 @@ module.exports = class BetterMediaPlayer extends Plugin {
 	      	render: Settings
     	})
 		inject("BetterMediaPlayer-Contols", Contols.prototype, "render", (_, res) => {
-			if (res.props.className === videoControls) {
-				if(get("button_pip", true) === true) 
-					res.props.children.splice(get("position_pip", 1), 0, React.createElement(PipIcon, {instance: this}))
-				if(get("button_loop", true) === true) 
-					res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop", true)}))
+			if (res.props.className === videoControls && get("button_pip", true) === true) {
+				res.props.children.splice(get("position_pip", 1), 0, React.createElement(PipIcon, {instance: this}))
 			}
+			if(get("button_loop", true) === true) 
+				res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop", true)}))
 			return res
 		})
 		inject("BetterMediaPlayer-AutoLoop", MediaPlayer.prototype, "renderVideo", (_, res) => {
