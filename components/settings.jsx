@@ -22,7 +22,8 @@ module.exports = class Settings extends React.PureComponent {
                     <FakeMessage />
                 </Group>
                 <Group name="Loop" description="Loop configuration">
-                    <SwitchItem value={getSetting("button_loop", true)} note="Loop videos in a simple click" onChange={() => toggleSetting("button_loop")}>Loop button</SwitchItem>
+                    <SwitchItem value={getSetting("button_loop", true)} note="Loop videos in a simple click" onChange={() => toggleSetting("button_loop")}>Loop button for videos</SwitchItem>
+                    <SwitchItem value={getSetting("button_loop_audio", true)} note="Loop audios in a simple click" onChange={() => toggleSetting("button_loop_audio")}>Loop button for audios</SwitchItem>
                     <SliderInput
                         stickToMarkers
                         minValue={ 0 }
@@ -33,7 +34,8 @@ module.exports = class Settings extends React.PureComponent {
                         onValueChange={ v => updateSetting("position_loop", v) }
                         note="Move the loop button to different spots"
                     >Position for the loop button</SliderInput>
-                    <SwitchItem value={getSetting("auto_loop", true)} note="Automatically loop videos" onChange={() => toggleSetting("auto_loop")}>Auto loop</SwitchItem>
+                    <SwitchItem value={getSetting("auto_loop", true)} note="Automatically loop videos" onChange={() => toggleSetting("auto_loop")}>Auto loop videos</SwitchItem>
+                    <SwitchItem value={getSetting("auto_loop_audio", true)} note="Automatically loop audios" onChange={() => toggleSetting("auto_loop_audio")}>Auto loop audios</SwitchItem>
                 </Group>
                 <Group name="Picture in picture" description="Picture in picture configuration">
                     <SwitchItem value={getSetting("button_pip", true)} note="Picture In Picture in a simple click" onChange={() => toggleSetting("button_pip")}>PIP button</SwitchItem>
