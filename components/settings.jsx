@@ -47,7 +47,7 @@ module.exports = class Settings extends React.PureComponent {
                         markers={[0,1,2,3,4,5]}
                         defaultValue={ getSetting("position_pip", 1) }
                         onValueChange={ v => updateSetting("position_pip", v) }
-                        note="Move the loop button to different spots"
+                        note="Move the PIP button to different spots"
                     >Position for the PIP button</SliderInput>
                 </Group>
             </>
