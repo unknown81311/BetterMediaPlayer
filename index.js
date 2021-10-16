@@ -9,6 +9,7 @@ const { ModalRoot, ModalSize } = getModule(["ModalRoot"], false)
 const { openModal } = getModule(["openModal"], false)
 const Alert = require("./components/Alert")
 const videoControls = getModule(["videoControls"], false).videoControls
+const audioControls = getModule(["audioControls"], false).audioControls
 module.exports = class BetterMediaPlayer extends Plugin {
 	constructor() {
 		super()
@@ -23,6 +24,7 @@ module.exports = class BetterMediaPlayer extends Plugin {
 		})
 	}
 	startPlugin() {
+        console.log("test")
 		const { get } = this.settings
 	    powercord.api.settings.registerSettings("BetterMediaPlayer-settings", {
     	  	category: this.entityID,
@@ -30,16 +32,24 @@ module.exports = class BetterMediaPlayer extends Plugin {
 	      	render: Settings
     	})
 		inject("BetterMediaPlayer-Contols", Contols.prototype, "render", (_, res) => {
-			if (res.props.className === videoControls) {
-				if(get("button_pip", true) === true) 
-					res.props.children.splice(get("position_pip", 1), 0, React.createElement(PipIcon, {instance: this}))
-				if(get("button_loop", true) === true) 
-					res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop", true)}))
+			if (res.props.className === videoControls && get("button_pip", true) === true) {
+				res.props.children.splice(get("position_pip", 1), 0, React.createElement(PipIcon, {instance: this}))
 			}
+			if (res.props.className === videoControls && get("button_loop", true) === true) {
+                res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop", true)}))
+            }
+			if (res.props.className === audioControls && get("button_loop_audio", true) === true) {
+                res.props.children.splice(get("position_loop", 1), 0, React.createElement(LoopIcon, {instance: this, active: get("auto_loop_audio", true)}))
+            }
 			return res
 		})
-		inject("BetterMediaPlayer-AutoLoop", MediaPlayer.prototype, "renderVideo", (_, res) => {
+		inject("BetterMediaPlayer-AutoLoopVideo", MediaPlayer.prototype, "renderVideo", (_, res) => {
 			if(get("auto_loop", true)) 
+				res.props.loop = true
+			return res
+		})
+		inject("BetterMediaPlayer-AutoLoopAudio", MediaPlayer.prototype, "renderAudio", (_, res) => {
+			if(get("auto_loop_audio", true)) 
 				res.props.loop = true
 			return res
 		})
@@ -47,6 +57,7 @@ module.exports = class BetterMediaPlayer extends Plugin {
 	pluginWillUnload() {
         powercord.api.settings.unregisterSettings("BetterMediaPlayer-settings")
 		uninject("BetterMediaPlayer-Contols")
-		uninject("BetterMediaPlayer-AutoLoop")
+		uninject("BetterMediaPlayer-AutoLoopVideo")
+		uninject("BetterMediaPlayer-AutoLoopAudio")
 	}
 }
