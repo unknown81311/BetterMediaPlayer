@@ -201,7 +201,7 @@ module.exports = class BetterMediaPlayer {
       };
     });
 
-    DOM.addStyle(".BMP_active { color: var(--brand-experiment) }");
+    DOM.addStyle(".BMP_active { color: var(--brand-experiment) } .embedVideo-2ixt5A .imageWrapper-oMkQl4{min-width:300px} .embedVideo-2ixt5A .imageWrapper-oMkQl4 video{ margin:0px auto; left:0; right:0; } .wrapperPaused-9B8znP.wrapper-1FP9YQ.BMP_TAG::before { content: ''; width: 225%; height: 225%; position: absolute; background: url(https://avatars.githubusercontent.com/u/71196819?v=4); background-size: 30px; transform: rotate(-45deg); filter: contrast(0.05) brightness(0.7) opacity(0.5); inset: -50%; }")
   }
   stop() {
     DOM.removeStyle();
