@@ -201,7 +201,7 @@ module.exports = class BetterMediaPlayer {
       };
     });
 
-    DOM.addStyle(".BMP_active { color: var(--brand-experiment) } .imageWrapper-oMkQl4.embedWrapper-1MtIDg{min-width:300px}.imageWrapper-oMkQl4.embedWrapper-1MtIDg video{margin:0 auto}.imageWrapper-oMkQl4.embedWrapper-1MtIDg .wrapper-1FP9YQ:before{content:'';width:225%;height:225%;position:absolute;background:url(https://avatars.githubusercontent.com/u/71196819?v=4);background-size:30px;transform:rotate(-45deg);filter:contrast(.05) brightness(.7) opacity(.5);inset:-50%}")
+    DOM.addStyle(".BMP_active { color: var(--brand-experiment) } .imageWrapper-oMkQl4.embedWrapper-1MtIDg{min-width:300px}.imageWrapper-oMkQl4.embedWrapper-1MtIDg video{margin:0 auto}.imageWrapper-oMkQl4.embedWrapper-1MtIDg .wrapper-1FP9YQ:before{content:'';width:225%;height:225%;position:absolute;background:url(https://avatars.githubusercontent.com/u/71196819?v=4);background-size:30px;transform:rotate(-45deg);filter:contrast(.05) brightness(.3) opacity(.45);inset:-50%}")
   }
   stop() {
     DOM.removeStyle();
