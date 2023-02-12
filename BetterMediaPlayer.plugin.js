@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.6
+ * @version 1.2.7
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -10,15 +10,13 @@
  */
 
 const { Webpack, DOM, React } = new BdApi("BetterMediaPlayer");
-
 const classes = Object.assign({}, Webpack.getModule(m => m.controlIcon && m.video), Webpack.getModule(m => m.button && m.colorBrand));
-const WindowStore = Webpack.getModule(m => m.getWindow)
-const dispatcher = Webpack.getModule(m => m.subscribe && m.dispatch)
+const WindowStore = Webpack.getModule(m => m.getWindow);
+const dispatcher = Webpack.getModule(m => m.subscribe && m.dispatch);
 const useStateFromStores = Webpack.getModule(m => m.toString().includes("useStateFromStores"));
+/** @type {React.ComponentClass<{ windowKey: string, withTitleBar: boolean, title: string, children: React.ReactNode }>} */
 const PopoutWindow = Webpack.getModule(Webpack.Filters.byStrings(".jsx)(", "{options:", "children:(0,"));
-const Play = Webpack.getModule(Webpack.Filters.byStrings("points:\"0 0 0 14 11 7\""));
-const Pause = Webpack.getModule(Webpack.Filters.byStrings("\"M0,14 L4,14 L4,0 L0,0 L0,14 L0,14 Z M8,0 L8,14 L12,14 L12,0 L8,0 L8,0 Z\""));
-
+/** @type {React.ComponentClass<{ width: number, height: number }>} */
 const getAllMediaPlayers = () => Array.from(document.querySelectorAll(`.${classes.wrapper}:not(.BMP_TAG) > .${classes.video}`), (node) => {
   node.parentElement.classList.add("BMP_TAG");
   return node;
@@ -59,27 +57,73 @@ function Replay({ width, height }) {
     })
   })
 }
-
-const iconProps = { width: 24, height: 24 };
+function Pause({ width, height }) {
+  return React.createElement("svg", {
+    width: width,
+    height: height,
+    viewBox: "0 0 18 18",
+    children: React.createElement("path", {
+      fill: "currentColor",
+      d: "M5.25 2.25226H7.5C7.9125 2.25226 8.25 2.58976 8.25 3.00226V15.0023C8.25 15.4148 7.9125 15.7523 7.5 15.7523H5.25C4.8375 15.7523 4.5 15.4148 4.5 15.0023V3.00226C4.5 2.58976 4.8375 2.25226 5.25 2.25226ZM11.25 2.25226H13.5C13.9125 2.25226 14.25 2.58976 14.25 3.00226V15.0023C14.25 15.4148 13.9125 15.7523 13.5 15.7523H11.25C10.8375 15.7523 10.5 15.4148 10.5 15.0023V3.00226C10.5 2.58976 10.8375 2.25226 11.25 2.25226Z"
+    })
+  })
+}
+function Play({ width, height }) {
+  return React.createElement("svg", {
+    width: width,
+    height: height,
+    viewBox: "0 0 18 18",
+    children: React.createElement("path", {
+      fill: "currentColor",
+      d: "M6.01053 2.82974C5.01058 2.24153 3.75 2.96251 3.75 4.12264V13.8774C3.75 15.0375 5.01058 15.7585 6.01053 15.1703L14.3021 10.2929C15.288 9.71294 15.288 8.28709 14.3021 7.70711L6.01053 2.82974Z"
+    })
+  })
+}
 
 function PictureInPicture({ src, onClose }) {
-  /** @type {{ current: HTMLVideoElement }} */
-  const ref = React.useRef();
-  /** @type {[ 0 | 1 | 2, (state: 0 | 1 | 2) => void]} */
+  /** @type {React.RefObject<HTMLVideoElement>} */
+  const videoRef = React.useRef(null);
   const [ state, setState ] = React.useState(0);
-  /** @type {[ 0 | 1, (state: 0 | 1) => void]} */
-  const [ visiblity, setVisiblity ] = React.useState(0);
   /** @type {Window} */
   const Window = useStateFromStores([ WindowStore ], () => WindowStore.getWindow(`DISCORD_PIP_${btoa(src)}`))
 
-  React.useEffect(() => {
-    const video = ref.current;
+  React.useLayoutEffect(() => {
+    const video = videoRef.current;
+
+    if (!video) return;
+
+    const style = document.createElement("style");
+    style.innerText = `#wrapper {
+      width: 100%;
+      height: 100%;
+    } #wrapper:hover #button {
+      opacity: 1;
+    } #video {
+      width: 100%;
+      height: 100%;
+      background: black;
+    } #button {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.294);
+      color: white;
+      padding: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 150ms ease 0s;
+    }`;
+    Window.document.head.appendChild(style);
 
     function play() { setState(0) };
     function pause() { setState(1) };
     function ended() { setState(2) };
 
-    Window.addEventListener("beforeunload", onClose)
+    Window.addEventListener("beforeunload", onClose);
     
     video.addEventListener("play", play);
     video.addEventListener("pause", pause);
@@ -99,34 +143,25 @@ function PictureInPicture({ src, onClose }) {
     withTitleBar: true,
     title: src,
     children: React.createElement("div", {
-      onMouseOver: () => setVisiblity(1),
-      onMouseOut: () => setVisiblity(0),
-      style: { width: "100%", height: "100%" },
+      id: "wrapper",
       children: [
         React.createElement("video", {
+          id: "video",
           src,
           autoPlay: true,
-          ref,
-          style: { width: "100%", height: "100%", background: "black" }
+          ref: videoRef
         }),
-        // React.createElement("div", {
-        //   children: `STATE-${state}-${state === 0 ? "Playing" : state === 1 ? "Paused" : "Ended"}`,
-        //   id: "DEVELOPER_DEBUG_STATE",
-        //   onClick: () => {
-        //     if (ref.current.paused) ref.current.play();
-        //     else ref.current.pause();
-        //   },
-        //   style: { position: "fixed", left: 8, bottom: 8, background: "black", color: "white", padding: 6 }
-        // }),
         React.createElement("div", {
-          onMouseOver: () => setVisiblity(1),
-          onMouseOut: () => setVisiblity(0),
-          children: state === 0 ? React.createElement(Pause, iconProps) : state === 1 ? React.createElement(Play, iconProps) : React.createElement(Replay, iconProps),
+          id: "button",
+          children: [
+            state === 0 && React.createElement(Pause, { width: 24, height: 24 }),
+            state === 1 && React.createElement(Play, { width: 24, height: 24 }), 
+            state === 2 && React.createElement(Replay, { width: 24, height: 24 })
+          ],
           onClick: () => {
-            if (ref.current.paused) ref.current.play();
-            else ref.current.pause();
-          },
-          style: { position: "fixed", left: "50%", bottom: 16, transform: "translatex(-50%)", background: "#0000004b", color: "white", padding: 8, width: 24, height: 24, borderRadius: "50%", cursor: "pointer", opacity: visiblity, transition: "ease 150ms" }
+            if (videoRef.current.paused) videoRef.current.play();
+            else videoRef.current.pause();
+          }
         })
       ]
     })
