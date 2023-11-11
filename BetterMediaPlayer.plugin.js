@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.9
+ * @version 1.2.10
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -15,7 +15,7 @@ const classes = Object.assign({}, Webpack.getModule(m => m.controlIcon && m.vide
 const [
   PopoutWindowStore,
   dispatcher,
-  useStateFromStores,
+  Flux,
   PopoutWindow,
   Switch,
   errorClasses,
@@ -36,9 +36,9 @@ const [
 ] = Webpack.getBulk(
   { filter: m => m.getWindow },
   { filter: m => m.subscribe && m.dispatch },
-  { filter: m => m.toString().includes("useStateFromStores") },
-  { filter: m => m.render?.toString().includes("POPOUT_WINDOW).AnalyticsLocationProvider") },
-  { filter: m => m.toString?.().includes(".tooltipNote,"), searchExports: true },
+  { filter: m => m.useStateFromStores && m.Dispatcher },
+  { filter: m => m.render?.toString().includes(".DnDProvider", ".POPOUT_WINDOW", "{guestWindow:") },
+  { filter: Webpack.Filters.byStrings("TooltipContainer", "tooltipNote:"), searchExports: true },
   { filter: m => m.wrapper && m.note },
   { filter: m => m.errorPage && m.buttons },
   { filter: m => m.defaultProps?.basis },
@@ -51,10 +51,12 @@ const [
   { filter: m => m.highlight },
   { filter: m => m.prototype?.deleteRole && m.prototype.getIconURL },
   { filter: m => m.getName?.() === "GuildMemberCountStore" },
-  { filter: Webpack.Filters.byStrings(".minValue,", ".maxValue,", "handleValueChange") },
+  { filter: Webpack.Filters.byStrings("sliderClassName:", "onDragEnd:this.handleDragEnd", "handleValueChange") },
   { filter: m => m.Types?.DURATION },
   { filter: m => m.thin && m.customTheme }
 );
+
+const useStateFromStores = Flux.useStateFromStores;
 
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
@@ -73,18 +75,15 @@ const appendLoopButton = (videoButtons) => {
     if (video.loop = !video.loop) node.classList.add("BMP_active");
     else node.classList.remove("BMP_active");
   });
-  node.classList.add("BMP_button", classes.button, classes.lookBlank, classes.grow);
+  
+  node.classList.add("BMP_button");
   if (video.loop) node.classList.add("BMP_active");
 
-  const wrapper = document.createElement("div");
-  wrapper.classList.add(classes.contents);
-
-  wrapper.innerHTML = `<svg class="${classes.controlIcon}" aria-hidden="true" role="img" width="24" height="24" viewBox="-5 0 459 459.648" xmlns="http://www.w3.org/2000/svg">
+  node.innerHTML = `<svg class="${classes.controlIcon}" aria-hidden="true" role="img" width="24" height="24" viewBox="-5 0 459 459.648" xmlns="http://www.w3.org/2000/svg">
   <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0" aria-hidden="true"></path>
   <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0" aria-hidden="true"></path>
 </svg>`;
 
-  node.append(wrapper);
   videoButtons.insertBefore(node, videoButtons.childNodes[1]);
 };
 
@@ -958,17 +957,13 @@ const appendPipButton = (videoButtons) => {
     node.classList.add("BMP_active");
   })
 
-  node.classList.add("BMP_button", classes.button, classes.lookBlank, classes.grow);
+  node.classList.add("BMP_button");
   
-  const wrapper = document.createElement("div");
-  wrapper.classList.add(classes.contents);
-
-  wrapper.innerHTML = `<svg class="${classes.controlIcon}" aria-hidden="true" role="img" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  node.innerHTML = `<svg class="${classes.controlIcon}" aria-hidden="true" role="img" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <path fill="transparent" fill-rule="evenodd" clip-rule="evenodd" d="M0 0h24v24H0V0z" aria-hidden="true"></path>
   <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z" aria-hidden="true"></path>
 </svg>`;
   
-  node.append(wrapper);
   videoButtons.insertBefore(node, videoButtons.childNodes[videoButtons.childNodes.length - 1])
 };
 
