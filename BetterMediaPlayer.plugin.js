@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.10
+ * @version 1.2.11
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -15,13 +15,11 @@ const classes = Object.assign({}, Webpack.getModule(m => m.controlIcon && m.vide
 const [
   PopoutWindowStore,
   dispatcher,
-  Flux,
+  useStateFromStores,
   PopoutWindow,
-  Switch,
   errorClasses,
   { errorPage, buttons },
   Flex,
-  Button,
   intl,
   inviteActions,
   InviteModalStore,
@@ -32,36 +30,37 @@ const [
   GuildMemberCountStore,
   VolumeSlider,
   DurationBar,
-  scrollerClasses
+  scrollerClasses,
+  UiModule
 ] = Webpack.getBulk(
   { filter: m => m.getWindow },
   { filter: m => m.subscribe && m.dispatch },
-  { filter: m => m.useStateFromStores && m.Dispatcher },
+  { filter: Webpack.Filters.byStrings('"useStateFromStores"'), searchExports: true  },
   { filter: m => m.render?.toString().includes(".DnDProvider", ".POPOUT_WINDOW", "{guestWindow:") },
-  { filter: Webpack.Filters.byStrings("TooltipContainer", "tooltipNote:"), searchExports: true },
   { filter: m => m.wrapper && m.note },
   { filter: m => m.errorPage && m.buttons },
   { filter: m => m.defaultProps?.basis },
-  { filter: m => m.Sizes && m.BorderColors, searchExports: true },
   { filter: m => m.Messages },
   { filter: m => m.resolveInvite },
   { filter: m => m.getName?.() === "InviteModalStore" },
   { filter: m => m.minimize && m.requireModule },
   { filter: m => m.getName?.() === "GuildStore" },
   { filter: m => m.highlight },
-  { filter: m => m.prototype?.deleteRole && m.prototype.getIconURL },
+  { filter: m => m.prototype?.getEveryoneRoleId && m.prototype.getIconURL },
   { filter: m => m.getName?.() === "GuildMemberCountStore" },
   { filter: Webpack.Filters.byStrings("sliderClassName:", "onDragEnd:this.handleDragEnd", "handleValueChange") },
   { filter: m => m.Types?.DURATION },
-  { filter: m => m.thin && m.customTheme }
+  { filter: m => m.thin && m.customTheme },
+  { filter: m => m.Button && m.Anchor }
 );
 
-const useStateFromStores = Flux.useStateFromStores;
+const Button = UiModule.Button;
+const Switch = UiModule.FormSwitch;
 
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
 
-const getAllMediaPlayers = () => Array.from(document.querySelectorAll(`.${classes.wrapper}:not(.BMP_TAG) > .${classes.video}`), (node) => {
+const getAllMediaPlayers = () => Array.from(document.querySelectorAll(`.${classes.wrapperControlsHidden.split(" ")[1]}:not(.BMP_TAG) > .${classes.video}`), (node) => {
   node.parentElement.classList.add("BMP_TAG");
   return node;
 });
@@ -999,6 +998,7 @@ module.exports = class BetterMediaPlayer {
   start() {
     for (const video of getAllMediaPlayers()) {
       const videoButton = video.parentElement.querySelector(`.${classes.videoControls}`);
+      console.log(video);
       if (videoButton) {
         appendPipButton(videoButton);
         appendLoopButton(videoButton);
@@ -1009,7 +1009,7 @@ module.exports = class BetterMediaPlayer {
       });
     };
 
-    DOM.addStyle(".BMP_active { color: var(--brand-experiment) }");
+    DOM.addStyle(".BMP_active { color: var(--brand-500) }");
   };
   stop() {
     DOM.removeStyle();
