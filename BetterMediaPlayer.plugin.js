@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.11
+ * @version 1.2.12
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -30,16 +30,15 @@ const [
   GuildMemberCountStore,
   VolumeSlider,
   DurationBar,
-  scrollerClasses,
-  UiModule
+  scrollerClasses
 ] = Webpack.getBulk(
   { filter: m => m.getWindow },
   { filter: m => m.subscribe && m.dispatch },
   { filter: Webpack.Filters.byStrings('"useStateFromStores"'), searchExports: true  },
-  { filter: m => m.render?.toString().includes(".DnDProvider", ".POPOUT_WINDOW", "{guestWindow:") },
+  { filter: m => m.render?.toString().includes("Missing guestWindow reference") },
   { filter: m => m.wrapper && m.note },
   { filter: m => m.errorPage && m.buttons },
-  { filter: m => m.defaultProps?.basis },
+  { filter: m => m.defaultProps?.basis, searchExports: true },
   { filter: m => m.Messages },
   { filter: m => m.resolveInvite },
   { filter: m => m.getName?.() === "InviteModalStore" },
@@ -50,12 +49,10 @@ const [
   { filter: m => m.getName?.() === "GuildMemberCountStore" },
   { filter: Webpack.Filters.byStrings("sliderClassName:", "onDragEnd:this.handleDragEnd", "handleValueChange") },
   { filter: m => m.Types?.DURATION },
-  { filter: m => m.thin && m.customTheme },
-  { filter: m => m.Button && m.Anchor }
+  { filter: m => m.thin && m.customTheme }
 );
 
-const Button = UiModule.Button;
-const Switch = UiModule.FormSwitch;
+const Button = BdApi.Components.Button;
 
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
@@ -488,7 +485,6 @@ function ErrorModal({ src, errorInfo }) {
 
 function ErrorSplash({ src, errorInfo, windowKey }) {
   const Window = useStateFromStores([ PopoutWindowStore ], () => PopoutWindowStore.getWindow(windowKey))
-  const [ isOnTop, setOntop ] = React.useContext(onTopContext);
 
   React.useLayoutEffect(() => {
     const style = document.createElement("style");
@@ -580,16 +576,6 @@ function ErrorSplash({ src, errorInfo, windowKey }) {
       React.createElement("div", {
         className: "button",
         style: {
-          right: 48,
-          bottom: 8,
-          position: "fixed"
-        },
-        onClick: () => setOntop(!isOnTop),
-        children: React.createElement(StayOnTop)
-      }),
-      React.createElement("div", {
-        className: "button",
-        style: {
           right: 8,
           bottom: 8,
           position: "fixed"
@@ -617,53 +603,6 @@ function generateTitle(error) {
   const [ message ] = reactError;
 
   return message.slice(0, message.length - 1);
-};
-
-const onTopContext = React.createContext([ true, () => {} ]);
-
-function StayOnTop() {
-  const [ isOnTop, setOntop ] = React.useContext(onTopContext);
-
-  return React.createElement("div", {
-    style: {
-      display: "flex",
-      cursor: "pointer"
-    },
-    id: "pin",
-    children: [
-      React.createElement("svg", {
-        viewBox: "0 0 24 24",
-        height: 24,
-        width: 24,
-        children: [
-          !isOnTop && React.createElement("path", {
-            d: "M19 3H5V5H7V12H5V14H11V22H13V14H19V12H17V5H19V3Z",
-            fill: "currentColor"
-          }),
-          isOnTop && [
-            React.createElement("path", {
-              d: "M21.47,3.39,20.14,2.05,2.53,19.66,3.86,21l4.41-4.4,1.3-1.31,1.75-1.74,3.83-3.83Z",
-              fill: "var(--red-400)",
-              fillRule: "evenodd"
-            }),
-            React.createElement("polygon", {
-              points: "17 11.14 16.55 11.59 14.14 14 19 14 19 12 17 12 17 11.14",
-              fill: "currentColor"
-            }),
-            React.createElement("polygon", {
-              points: "16.91 3 5 3 5 5 7 5 7 12 5 12 5 14 5.91 14 16.91 3",
-              fill: "currentColor"
-            }),
-            React.createElement("polygon", {
-              points: "12.72 15.42 11 17.14 11 22 13 22 13 15.14 12.72 15.42",
-              fill: "currentColor"
-            })
-          ]
-        ]
-      })
-    ],
-    onClick: () => setOntop(!isOnTop)
-  })
 };
 
 function PictureInPicture({ src, windowKey }) {
@@ -877,7 +816,6 @@ function PictureInPicture({ src, windowKey }) {
               sliderClassName: "volumeSlider"
             })
           }),
-          React.createElement(StayOnTop),
           React.createElement("a", {
             id: "download",
             href: src,
@@ -898,26 +836,20 @@ function Popout({ src, windowKey }) {
     return src.replace(`${dirname}/`, "");
   }, [ ]);
 
-  const [ isOnTop, setOntop ] = React.useState(() => Data.load("stayOnTop") ?? true);
-
-  function newSetOnTop(value) {
-    setOntop(value);
-    native.setAlwaysOnTop(windowKey, value);
-  };
-
-  return React.createElement(onTopContext.Provider, {
-    value: [ isOnTop, newSetOnTop ],
-    children: React.createElement(PopoutWindow, {
-      windowKey: windowKey,
-      withTitleBar: true,
-      macOSFrame: true,
-      title: `${fileName} - Discord`,
-      children: React.createElement(ErrorBoundary, {
-        windowKey,
-        src: src
-      })
+  return React.createElement(PopoutWindow, {
+    windowKey: windowKey,
+    withTitleBar: true,
+    macOSFrame: true,
+    title: `${fileName} - Discord`,
+    children: React.createElement(ErrorBoundary, {
+      windowKey,
+      src: src
     })
   });
+};
+
+const encodeBase64 = (str) => {
+  return btoa(new TextEncoder().encode(str).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 };
 
 const appendPipButton = (videoButtons) => {
@@ -926,7 +858,7 @@ const appendPipButton = (videoButtons) => {
 
   const node = document.createElement("div");
   node.addEventListener("click", () => {
-    const windowKey = `DISCORD_PIP_${video.src}`;
+    const windowKey = `DISCORD_PIP_${encodeBase64(video.src)}`;
 
     if (node.classList.contains("BMP_active")) {
       node.classList.remove("BMP_active");
@@ -940,7 +872,7 @@ const appendPipButton = (videoButtons) => {
         windowKey,
         src: video.src
       }),
-      features: {}
+      features: {popout: true}
     });
     // Listener to remove the active class
     function listener() {
@@ -950,8 +882,6 @@ const appendPipButton = (videoButtons) => {
       PopoutWindowStore.removeChangeListener(listener);
     };
     PopoutWindowStore.addChangeListener(listener);
-
-    native.setAlwaysOnTop(windowKey, Data.load("stayOnTop") ?? true);
 
     node.classList.add("BMP_active");
   })
@@ -975,19 +905,6 @@ const observer = new MutationObserver((records) => {
   };
 });
 
-function Settings() {
-  const [ shouldStayOnTop, stayOnTop ] = React.useState(() => Data.load("stayOnTop") ?? true);
-
-  return React.createElement(Switch, {
-    value: shouldStayOnTop,
-    onChange: () => {
-      stayOnTop(!shouldStayOnTop);
-      Data.save("stayOnTop", !shouldStayOnTop);
-    },
-    children: "Stay On Top By Default"
-  });
-};
-
 module.exports = class BetterMediaPlayer {
   observer() {
     for (const video of getAllMediaPlayers()) observer.observe(video.parentElement, {
@@ -998,7 +915,7 @@ module.exports = class BetterMediaPlayer {
   start() {
     for (const video of getAllMediaPlayers()) {
       const videoButton = video.parentElement.querySelector(`.${classes.videoControls}`);
-      console.log(video);
+
       if (videoButton) {
         appendPipButton(videoButton);
         appendLoopButton(videoButton);
@@ -1009,7 +926,7 @@ module.exports = class BetterMediaPlayer {
       });
     };
 
-    DOM.addStyle(".BMP_active { color: var(--brand-500) }");
+    DOM.addStyle(".BMP_active svg { color: var(--brand-500) }");
   };
   stop() {
     DOM.removeStyle();
@@ -1035,8 +952,5 @@ module.exports = class BetterMediaPlayer {
     };
 
     observer.disconnect();
-  };
-  getSettingsPanel() {
-    return React.createElement(Settings);
   };
 };
