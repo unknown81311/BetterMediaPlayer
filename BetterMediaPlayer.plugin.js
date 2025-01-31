@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.13
+ * @version 1.2.14
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -57,8 +57,8 @@ const Button = BdApi.Components.Button;
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
 
-const getAllMediaPlayers = () => Array.from(document.querySelectorAll(`.${classes.wrapperControlsHidden.split(" ")[1]}:not(.BMP_TAG) > .${classes.video}`), (node) => {
-  node.parentElement.classList.add("BMP_TAG");
+const getAllMediaPlayers = () => Array.from(document.querySelectorAll(`.${classes.wrapperControlsHidden.split(" ")[1]}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
+  node.parentElement.setAttribute("data-bmp-hook", "");
   return node;
 });
 
@@ -898,8 +898,10 @@ const appendPipButton = (videoButtons) => {
 
 const observer = new MutationObserver((records) => {
   for (const { addedNodes } of records) {
+    /** @type {HTMLElement} */
     const videoButton = Array.from(addedNodes).find(node => node.classList.value === classes.videoControls);
-    if (!videoButton) continue;
+    if (!videoButton) continue;    
+    
     appendPipButton(videoButton);
     appendLoopButton(videoButton);
   };
@@ -907,15 +909,9 @@ const observer = new MutationObserver((records) => {
 
 module.exports = class BetterMediaPlayer {
   observer() {
-    for (const video of getAllMediaPlayers()) observer.observe(video.parentElement, {
-      childList: true,
-      attributes: true
-    });
-  };
-  start() {
     for (const video of getAllMediaPlayers()) {
       const videoButton = video.parentElement.querySelector(`.${classes.videoControls}`);
-
+    
       if (videoButton) {
         appendPipButton(videoButton);
         appendLoopButton(videoButton);
@@ -924,14 +920,17 @@ module.exports = class BetterMediaPlayer {
         childList: true,
         attributes: true
       });
-    };
+    }
+  };
+  start() {
+    this.observer();
 
     DOM.addStyle(".BMP_active svg { color: var(--brand-500) }");
   };
   stop() {
     DOM.removeStyle();
 
-    Array.from(document.querySelectorAll(".BMP_TAG"), node => node.classList.remove("BMP_TAG"));
+    Array.from(document.querySelectorAll("[data-bmp-hook]"), node => node.removeAttribute("data-bmp-hook"));
     Array.from(document.querySelectorAll(".BMP_button"), node => node.remove());
 
     for (const key of PopoutWindowStore.getWindowKeys()) {
