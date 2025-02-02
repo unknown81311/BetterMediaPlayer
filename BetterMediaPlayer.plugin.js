@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.14
+ * @version 1.2.15
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -57,7 +57,7 @@ const Button = BdApi.Components.Button;
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
 
-const getAllMediaPlayers = () => Array.from(document.querySelectorAll(`.${classes.wrapperControlsHidden.split(" ")[1]}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
+const getAllMediaPlayers = (parent = document) => Array.from(parent.querySelectorAll(`.${classes.wrapperControlsHidden.split(" ")[1]}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
   node.parentElement.setAttribute("data-bmp-hook", "");
   return node;
 });
@@ -908,22 +908,24 @@ const observer = new MutationObserver((records) => {
 });
 
 module.exports = class BetterMediaPlayer {
-  observer() {
-    for (const video of getAllMediaPlayers()) {
-      const videoButton = video.parentElement.querySelector(`.${classes.videoControls}`);
-    
-      if (videoButton) {
-        appendPipButton(videoButton);
-        appendLoopButton(videoButton);
+  observer(record) {
+    for (const added of record.addedNodes) {
+      for (const video of getAllMediaPlayers(added)) {
+        const videoButton = video.parentElement.querySelector(`.${classes.videoControls}`);
+      
+        if (videoButton) {
+          appendPipButton(videoButton);
+          appendLoopButton(videoButton);
+        }
+        else observer.observe(video.parentElement, {
+          childList: true,
+          attributes: true
+        });
       }
-      else observer.observe(video.parentElement, {
-        childList: true,
-        attributes: true
-      });
     }
   };
   start() {
-    this.observer();
+    this.observer({ addedNodes: [ document ] });
 
     DOM.addStyle(".BMP_active svg { color: var(--brand-500) }");
   };
