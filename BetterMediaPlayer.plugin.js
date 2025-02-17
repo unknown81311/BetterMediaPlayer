@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.15
+ * @version 1.2.16
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -57,7 +57,8 @@ const Button = BdApi.Components.Button;
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
 
-const getAllMediaPlayers = (parent = document) => Array.from(parent.querySelectorAll(`.${classes.wrapperControlsHidden.split(" ")[1]}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
+const c = classes.wrapperControlsHidden.split(" ")[1];
+const getAllMediaPlayers = (parent = document) => Array.from(parent?.querySelectorAll?.(`.${c}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
   node.parentElement.setAttribute("data-bmp-hook", "");
   return node;
 });
