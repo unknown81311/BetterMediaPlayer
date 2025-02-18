@@ -58,7 +58,7 @@ const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
 
 const c = classes.wrapperControlsHidden.split(" ")[1];
-const getAllMediaPlayers = (parent = document) => Array.from(parent?.querySelectorAll?.(`.${c}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
+const getAllMediaPlayers = (parent = document) => !parent?.querySelectorAll ? [] : Array.from(parent.querySelectorAll(`.${c}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
   node.parentElement.setAttribute("data-bmp-hook", "");
   return node;
 });
