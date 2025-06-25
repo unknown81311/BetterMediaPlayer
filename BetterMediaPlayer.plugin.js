@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.16
+ * @version 1.2.17
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -9,7 +9,7 @@
  * @invite yYJA3qQE5F
  */
 
-const { Webpack, DOM, React, Data, UI } = new BdApi("BetterMediaPlayer");
+const { Patcher, Webpack, DOM, React, Data, UI } = new BdApi("BetterMediaPlayer");
 const classes = Object.assign({}, Webpack.getModule(m => m.controlIcon && m.video), Webpack.getModule(m => m.button && m.colorBrand));
 
 const [
@@ -30,7 +30,13 @@ const [
   GuildMemberCountStore,
   VolumeSlider,
   DurationBar,
-  scrollerClasses
+  scrollerClasses,
+  MediaControls,
+  buttonClasses,
+  controlClasses,
+  iconClasses,
+  titleClasses,
+  TextBase
 ] = Webpack.getBulk(
   { filter: m => m.getWindow },
   { filter: m => m.subscribe && m.dispatch },
@@ -49,40 +55,25 @@ const [
   { filter: m => m.getName?.() === "GuildMemberCountStore" },
   { filter: Webpack.Filters.byStrings("sliderClassName:", "onDragEnd:this.handleDragEnd", "handleValueChange") },
   { filter: m => m.Types?.DURATION },
-  { filter: m => m.thin && m.customTheme }
+  { filter: m => m.thin && m.customTheme },
+  { filter: Webpack.Filters.byPrototypeKeys("renderControls", "renderVideo") },
+  { filter: Webpack.Filters.byKeys("sizeTiny", "colorBrand") },
+  { filter: Webpack.Filters.byKeys("controlIcon", "videoButton") },
+  { filter: Webpack.Filters.byKeys("controlIcon", "popoutOpen") },
+  { filter: Webpack.Filters.byKeys("guildIcon", "title", "button") },
+  { filter: ((m) => (exports, module) => m(Webpack.modules[module.id]))(Webpack.Filters.byStrings("data-text-variant")), searchExports: true }
 );
+
+const Text = TextBase?.render ? TextBase : Object.values(TextBase)[0];
+
+const [toolbarModule, toolbarKey] = Webpack.getWithKey(Webpack.Filters.byStrings(".PlatformTypes.WINDOWS", "leading:"), {
+  target: Webpack.getBySource(".shortBar]:", ".WINDOWS&&")
+});
 
 const Button = BdApi.Components.Button;
 
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
-
-const c = classes.wrapperControlsHidden.split(" ")[1];
-const getAllMediaPlayers = (parent = document) => !parent?.querySelectorAll ? [] : Array.from(parent.querySelectorAll(`.${c}:not([data-bmp-hook]) > .${classes.video}`), (node) => {
-  node.parentElement.setAttribute("data-bmp-hook", "");
-  return node;
-});
-
-const appendLoopButton = (videoButtons) => {
-  /** @type {HTMLVideoElement} */
-  const video = videoButtons.parentElement.querySelector("video");
-
-  const node = document.createElement("div");
-  node.addEventListener("click", () => {
-    if (video.loop = !video.loop) node.classList.add("BMP_active");
-    else node.classList.remove("BMP_active");
-  });
-  
-  node.classList.add("BMP_button");
-  if (video.loop) node.classList.add("BMP_active");
-
-  node.innerHTML = `<svg class="${classes.controlIcon}" aria-hidden="true" role="img" width="24" height="24" viewBox="-5 0 459 459.648" xmlns="http://www.w3.org/2000/svg">
-  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m416.324219 293.824219c0 26.507812-21.492188 48-48 48h-313.375l63.199219-63.199219-22.625-22.625-90.511719 90.511719c-6.246094 6.25-6.246094 16.375 0 22.625l90.511719 90.511719 22.625-22.625-63.199219-63.199219h313.375c44.160156-.054688 79.945312-35.839844 80-80v-64h-32zm0 0" aria-hidden="true"></path>
-  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m32.324219 165.824219c0-26.511719 21.488281-48 48-48h313.375l-63.199219 63.199219 22.625 22.625 90.511719-90.511719c6.246093-6.25 6.246093-16.375 0-22.625l-90.511719-90.511719-22.625 22.625 63.199219 63.199219h-313.375c-44.160157.050781-79.949219 35.839843-80 80v64h32zm0 0" aria-hidden="true"></path>
-</svg>`;
-
-  videoButtons.insertBefore(node, videoButtons.childNodes[1]);
-};
 
 function Replay({ width, height }) {
   return React.createElement("svg", {
@@ -117,11 +108,12 @@ function Play({ width, height }) {
     })
   });
 };
-function Loop({ width, height }) {
+function Loop({ width, height, className }) {
   return React.createElement("svg", {
     width: width,
     height: height,
     viewBox: "-5 0 459 459.648",
+    className,
     children: [
       React.createElement("path", {
         fill: "currentColor",
@@ -853,89 +845,147 @@ const encodeBase64 = (str) => {
   return btoa(new TextEncoder().encode(str).reduce((data, byte) => data + String.fromCharCode(byte), ""));
 };
 
-const appendPipButton = (videoButtons) => {
-  /** @type {HTMLVideoElement} */
-  const video = videoButtons.parentElement.querySelector("video");
-
-  const node = document.createElement("div");
-  node.addEventListener("click", () => {
-    const windowKey = `DISCORD_PIP_${encodeBase64(video.src)}`;
-
-    if (node.classList.contains("BMP_active")) {
-      node.classList.remove("BMP_active");
-      return PopoutWindowStore.unmountWindow(windowKey);
-    };
-
-    dispatcher.dispatch({
-      type: "POPOUT_WINDOW_OPEN",
-      key: windowKey,
-      render: () => React.createElement(Popout, {
-        windowKey,
-        src: video.src
-      }),
-      features: {popout: true}
-    });
-    // Listener to remove the active class
-    function listener() {
-      if (PopoutWindowStore.getWindowOpen(windowKey)) return;
-
-      node.classList.remove("BMP_active");
-      PopoutWindowStore.removeChangeListener(listener);
-    };
-    PopoutWindowStore.addChangeListener(listener);
-
-    node.classList.add("BMP_active");
-  })
-
-  node.classList.add("BMP_button");
-  
-  node.innerHTML = `<svg class="${classes.controlIcon}" aria-hidden="true" role="img" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <path fill="transparent" fill-rule="evenodd" clip-rule="evenodd" d="M0 0h24v24H0V0z" aria-hidden="true"></path>
-  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z" aria-hidden="true"></path>
-</svg>`;
-  
-  videoButtons.insertBefore(node, videoButtons.childNodes[videoButtons.childNodes.length - 1])
+const decodeBase64 = (str) => {
+  return new TextDecoder().decode(Uint8Array.from(atob(str), (m) => m.codePointAt(0)));
 };
 
-const observer = new MutationObserver((records) => {
-  for (const { addedNodes } of records) {
-    /** @type {HTMLElement} */
-    const videoButton = Array.from(addedNodes).find(node => node.classList.value === classes.videoControls);
-    if (!videoButton) continue;    
-    
-    appendPipButton(videoButton);
-    appendLoopButton(videoButton);
-  };
-});
+function LoopButton({ mediaRef }) {
+  const [ active, setActive ] = React.useState(() => mediaRef?.current?.loop || false);
+
+  return React.createElement("button", {
+    className: `${buttonClasses.button} ${buttonClasses.lookBlank} ${buttonClasses.colorBrand} ${buttonClasses.grow}${active ? " BMP_active" : ""}`,
+    onClick: () => {
+      setActive(mediaRef.current.loop = !mediaRef.current.loop);
+    },
+    children: [
+      React.createElement("div", {
+        className: `${buttonClasses.contents} ${iconClasses.lineHeightReset}`,
+        children: [
+          React.createElement(Loop, {
+            className: `${controlClasses.controlIcon} ${iconClasses.controlIcon}`
+          })
+        ]
+      })
+    ]
+  })
+}
+
+function PIPButton({ mediaRef }) {
+  const [ active, setActive ] = React.useState(() => {
+    return PopoutWindowStore.getWindowOpen(`DISCORD_PIP_${encodeBase64(mediaRef?.current?.src)}`);
+  });
+
+  return React.createElement("button", {
+    className: `${buttonClasses.button} ${buttonClasses.lookBlank} ${buttonClasses.colorBrand} ${buttonClasses.grow}${active ? " BMP_active" : ""}`,
+    onClick: () => {
+      const windowKey = `DISCORD_PIP_${encodeBase64(mediaRef.current.src)}`;
+
+      if (active) {
+        setActive(false);
+        return PopoutWindowStore.unmountWindow(windowKey);
+      }
+
+      dispatcher.dispatch({
+        type: "POPOUT_WINDOW_OPEN",
+        key: windowKey,
+        render: () => React.createElement(Popout, {
+          windowKey,
+          src: mediaRef.current.src
+        }),
+        features: {popout: true}
+      });
+      // Listener to remove the active class
+      function listener() {
+        if (PopoutWindowStore.getWindowOpen(windowKey)) return;
+
+        setActive(false);
+        PopoutWindowStore.removeChangeListener(listener);
+      };
+      PopoutWindowStore.addChangeListener(listener);
+
+      setActive(true);
+    },
+    children: [
+      React.createElement("div", {
+        className: `${buttonClasses.contents} ${iconClasses.lineHeightReset}`,
+        children: [
+          React.createElement("svg", {
+            role: "img",
+            xmlns: "http://www.w3.org/2000/svg",
+            "aria-hidden": true,
+            viewBox: "0 0 24 24",
+            fill: "none",
+            className: `${controlClasses.controlIcon} ${iconClasses.controlIcon}`,
+            children: [
+              React.createElement("path", {
+                d: "M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z",
+                fill: "currentColor",
+                fillRule: "evenodd",
+                clipRule: "evenodd"
+              })
+            ]
+          })
+        ]
+      })
+    ]
+  })
+}
 
 module.exports = class BetterMediaPlayer {
-  observer(record) {
-    for (const added of record.addedNodes) {
-      for (const video of getAllMediaPlayers(added)) {
-        const videoButton = video.parentElement.querySelector(`.${classes.videoControls}`);
-      
-        if (videoButton) {
-          appendPipButton(videoButton);
-          appendLoopButton(videoButton);
+  start() {
+    const cache = new WeakMap();
+
+    Patcher.after(MediaControls.prototype, "renderControls", (that, [], ret) => {
+      if (that.props.type !== MediaControls.Types.VIDEO) return;
+      if (!React.isValidElement(ret)) return;
+
+      let type = cache.get(ret.type);
+
+      if (!type && ret.type.prototype?.isReactComponent) {
+        class Controls extends ret.type {
+          render() {
+            const render = super.render();
+
+            try {
+              render.props.children.splice(1, 0, React.createElement(LoopButton, { mediaRef: that.mediaRef }));
+              render.props.children.splice(-1, 0, React.createElement(PIPButton, { mediaRef: that.mediaRef }));
+            }
+            finally {
+              return render;
+            }
+          }
         }
-        else observer.observe(video.parentElement, {
-          childList: true,
-          attributes: true
+
+        cache.set(ret.type, Controls);
+        cache.set(Controls, Controls);
+
+        type = Controls;
+      }
+
+      ret.type = type || ret.type;
+    });
+
+    Patcher.before(toolbarModule, toolbarKey, (that, [props]) => {      
+      if (props?.windowKey?.startsWith("DISCORD_PIP_")) {
+        // props.short = false;
+        props.title = React.createElement("div", {
+          title: titleClasses.title,
+          children: [
+            React.createElement(Text, {
+              children: decodeBase64(props.windowKey.replace("DISCORD_PIP_", "")).split("?")[0].split("/").at(-1)
+            })
+          ]
         });
       }
-    }
-  };
-  start() {
-    this.observer({ addedNodes: [ document ] });
+    });
 
     DOM.addStyle(".BMP_active svg { color: var(--brand-500) }");
   };
   stop() {
+    Patcher.unpatchAll();
+
     DOM.removeStyle();
-
-    Array.from(document.querySelectorAll("[data-bmp-hook]"), node => node.removeAttribute("data-bmp-hook"));
-    Array.from(document.querySelectorAll(".BMP_button"), node => node.remove());
-
+    
     for (const key of PopoutWindowStore.getWindowKeys()) {
       if (!key.startsWith("DISCORD_PIP_")) continue;
       try {
@@ -952,7 +1002,5 @@ module.exports = class BetterMediaPlayer {
         console.groupEnd();
       };
     };
-
-    observer.disconnect();
   };
 };
