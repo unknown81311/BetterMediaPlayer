@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.18
+ * @version 1.2.19
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -13,6 +13,7 @@ const { Patcher, Webpack, DOM, React, Data, UI } = new BdApi("BetterMediaPlayer"
 const classes = Object.assign({}, Webpack.getModule(m => m.controlIcon && m.video), Webpack.getModule(m => m.button && m.colorBrand));
 
 const [
+  _,
   PopoutWindowStore,
   dispatcher,
   useStateFromStores,
@@ -20,7 +21,7 @@ const [
   errorClasses,
   { errorPage, buttons },
   Flex,
-  intl,
+  i18n,
   inviteActions,
   InviteModalStore,
   native,
@@ -32,12 +33,13 @@ const [
   DurationBar,
   scrollerClasses,
   MediaControls,
-  buttonClasses,
   controlClasses,
   iconClasses,
   titleClasses,
-  TextBase
+  TextBase,
+  _Button
 ] = Webpack.getBulk(
+  { filter: m => m._ && m.debounce },
   { filter: m => m.getWindow },
   { filter: m => m.subscribe && m.dispatch },
   { filter: Webpack.Filters.byStrings('"useStateFromStores"'), searchExports: true  },
@@ -45,32 +47,37 @@ const [
   { filter: m => m.wrapper && m.note },
   { filter: m => m.errorPage && m.buttons },
   { filter: m => m.defaultProps?.basis, searchExports: true },
-  { filter: m => m.Messages },
+  { filter: m => m.t && m.intl },
   { filter: m => m.resolveInvite },
   { filter: m => m.getName?.() === "InviteModalStore" },
   { filter: m => m.minimize && m.requireModule },
   { filter: m => m.getName?.() === "GuildStore" },
-  { filter: m => m.highlight },
+  { filter: m => typeof m.highlight === "function" && typeof m.highlightAll === "function" },
   { filter: m => m.prototype?.getEveryoneRoleId && m.prototype.getIconURL },
   { filter: m => m.getName?.() === "GuildMemberCountStore" },
   { filter: Webpack.Filters.byStrings("sliderClassName:", "onDragEnd:this.handleDragEnd", "handleValueChange") },
   { filter: m => m.Types?.DURATION },
   { filter: m => m.thin && m.customTheme },
   { filter: Webpack.Filters.byPrototypeKeys("renderControls", "renderVideo") },
-  { filter: Webpack.Filters.byKeys("sizeTiny", "colorBrand") },
   { filter: Webpack.Filters.byKeys("controlIcon", "videoButton") },
   { filter: Webpack.Filters.byKeys("controlIcon", "popoutOpen") },
   { filter: Webpack.Filters.byKeys("guildIcon", "title", "button") },
-  { filter: ((m) => (exports, module) => m(Webpack.modules[module.id]))(Webpack.Filters.byStrings("data-text-variant")), searchExports: true }
+  { filter: ((m) => (exports, module) => m(Webpack.modules[module.id]))(Webpack.Filters.byStrings("data-text-variant")), searchExports: true },
+  { filter: (m) => typeof m === "function" && typeof m.Link === "function", searchExports: true }
 );
+
+const Button = _Button || Object.assign(React.forwardRef((props, ref) => React.createElement("button", { ...props, ref })), {
+  Colors: {},
+  get Link() {return this;},
+  Looks: {},
+  Sizes: {}
+});
 
 const Text = TextBase?.render ? TextBase : Object.values(TextBase)[0];
 
 const [toolbarModule, toolbarKey] = Webpack.getWithKey(Webpack.Filters.byStrings(".PlatformTypes.WINDOWS", "leading:"), {
   target: Webpack.getBySource(".shortBar]:", ".WINDOWS&&")
 });
-
-const Button = BdApi.Components.Button;
 
 const { isOpen: originalIsOpen } = InviteModalStore;
 const { minimize: originalMinimize, focus: originalFocus } = native;
@@ -384,9 +391,9 @@ function JoinGuild() {
         color: Button.Colors.GREEN,
         disabled: guild ? false : !invite,
         children: [
-          guild && intl.Messages.JOINED_GUILD,
-          (!guild && invite) && intl.Messages.INVITE_MODAL_BUTTON.message.replace("**!!{guildName}!!**", guildInfo.name),
-          (!guild && !invite) && intl.Messages.INVITE_BUTTON_RESOLVING
+          guild && i18n.intl.string(i18n.t.cEnaW1),
+          (!guild && invite) && i18n.intl.format(i18n.t.QD7BDA, { guildName: guildInfo.name }),
+          (!guild && !invite) && i18n.intl.string(i18n.t["N/g9Z2"])
         ],
         onClick: onClick
       })
@@ -539,14 +546,14 @@ function ErrorSplash({ src, errorInfo, windowKey }) {
                 children: [
                   React.createElement("h2", {
                     className: errorClasses.title,
-                    children: intl.Messages.UNSUPPORTED_BROWSER_TITLE
+                    children: i18n.intl.string(i18n.t["3h+n+/"])
                   }),
                   React.createElement("div", {
                     className: errorClasses.note,
                     children: React.createElement("div", {
                       children: [
-                        React.createElement("p", {}, intl.Messages.CRASH_UNEXPECTED.replace("Discord", "Better Media Player")),
-                        React.createElement("p", {}, intl.Messages.ERRORS_UNEXPECTED_CRASH.replace("Discord", "Better Media Player"))
+                        React.createElement("p", {}, i18n.intl.string(i18n.t["8JQPPj"]).replace("Discord", "Better Media Player")),
+                        React.createElement("p", {}, i18n.intl.string(i18n.t.tx8CkJ).replace("Discord", "Better Media Player"))
                       ]
                     })
                   })
@@ -558,7 +565,7 @@ function ErrorSplash({ src, errorInfo, windowKey }) {
                   React.createElement(Button, {
                     size: Button.Sizes.LARGE,
                     onClick: () => Window.close(),
-                    children: intl.Messages.CLOSE
+                    children: i18n.intl.string(i18n.t.cpT0Cg)
                   })
                 ]
               })
@@ -591,7 +598,7 @@ function ErrorSplash({ src, errorInfo, windowKey }) {
 function generateTitle(error) {
   const reactError = error.message.match(/Minified React error #[0-9]+;/);
 
-  if (!reactError) return intl.Messages.HELP;
+  if (!reactError) return i18n.intl.string(i18n.t.cqEoj4);
 
   const [ message ] = reactError;
 
@@ -824,10 +831,18 @@ function PictureInPicture({ src, windowKey }) {
 };
 
 function Popout({ src, windowKey }) {
-  const fileName = React.useMemo(() => {
-    const dirname = DiscordNative.fileManager.dirname(src);
-    return src.replace(`${dirname}/`, "");
-  }, [ ]);
+  const fileName = React.useMemo(() => src.split("?")[0].split("/").at(-1), [ src ]);
+
+  React.useInsertionEffect(() => {
+    /** @type {Window} */
+    const window = PopoutWindowStore.getWindow(windowKey);
+
+    const clone = window.document.adoptNode(
+      document.querySelector("bd-head").cloneNode(true)
+    );
+
+    window.document.body.appendChild(clone);
+  }, []);
 
   return React.createElement(PopoutWindow, {
     windowKey: windowKey,
@@ -852,21 +867,17 @@ const decodeBase64 = (str) => {
 function LoopButton({ mediaRef }) {
   const [ active, setActive ] = React.useState(() => mediaRef?.current?.loop || false);
 
-  return React.createElement("button", {
-    className: `${buttonClasses.button} ${buttonClasses.lookBlank} ${buttonClasses.colorBrand} ${buttonClasses.grow}${active ? " BMP_active" : ""}`,
+  return React.createElement(Button, {
+    look: Button.Looks.BLANK,
+    size: Button.Sizes.NONE,
+    className: active && "BMP_active",
+    innerClassName: iconClasses.lineHeightReset,
     onClick: () => {
       setActive(mediaRef.current.loop = !mediaRef.current.loop);
     },
-    children: [
-      React.createElement("div", {
-        className: `${buttonClasses.contents} ${iconClasses.lineHeightReset}`,
-        children: [
-          React.createElement(Loop, {
-            className: `${controlClasses.controlIcon} ${iconClasses.controlIcon}`
-          })
-        ]
-      })
-    ]
+    children: React.createElement(Loop, {
+      className: `${controlClasses.controlIcon} ${iconClasses.controlIcon}`
+    })
   })
 }
 
@@ -875,8 +886,13 @@ function PIPButton({ mediaRef }) {
     return PopoutWindowStore.getWindowOpen(`DISCORD_PIP_${encodeBase64(mediaRef?.current?.src)}`);
   });
 
-  return React.createElement("button", {
-    className: `${buttonClasses.button} ${buttonClasses.lookBlank} ${buttonClasses.colorBrand} ${buttonClasses.grow}${active ? " BMP_active" : ""}`,
+  // button__201d5 lookBlank__201d5 colorBrand__201d5 grow__201d5
+  // button__201d5 lookFilled__201d5 colorBrand__201d5 sizeMedium__201d5 grow__201d5
+  return React.createElement(Button, {
+    look: Button.Looks.BLANK,
+    size: Button.Sizes.NONE,
+    className: active && "BMP_active",
+    innerClassName: iconClasses.lineHeightReset,
     onClick: () => {
       const windowKey = `DISCORD_PIP_${encodeBase64(mediaRef.current.src)}`;
 
@@ -905,29 +921,22 @@ function PIPButton({ mediaRef }) {
 
       setActive(true);
     },
-    children: [
-      React.createElement("div", {
-        className: `${buttonClasses.contents} ${iconClasses.lineHeightReset}`,
-        children: [
-          React.createElement("svg", {
-            role: "img",
-            xmlns: "http://www.w3.org/2000/svg",
-            "aria-hidden": true,
-            viewBox: "0 0 24 24",
-            fill: "none",
-            className: `${controlClasses.controlIcon} ${iconClasses.controlIcon}`,
-            children: [
-              React.createElement("path", {
-                d: "M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z",
-                fill: "currentColor",
-                fillRule: "evenodd",
-                clipRule: "evenodd"
-              })
-            ]
-          })
-        ]
-      })
-    ]
+    children: React.createElement("svg", {
+      role: "img",
+      xmlns: "http://www.w3.org/2000/svg",
+      "aria-hidden": true,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      className: `${controlClasses.controlIcon} ${iconClasses.controlIcon}`,
+      children: [
+        React.createElement("path", {
+          d: "M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z",
+          fill: "currentColor",
+          fillRule: "evenodd",
+          clipRule: "evenodd"
+        })
+      ]
+    })
   })
 }
 
