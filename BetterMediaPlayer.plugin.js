@@ -66,12 +66,7 @@ const [
   { filter: (m) => typeof m === "function" && typeof m.Link === "function", searchExports: true }
 );
 
-const Button = _Button || Object.assign(React.forwardRef((props, ref) => React.createElement("button", { ...props, ref })), {
-  Colors: {},
-  get Link() {return this;},
-  Looks: {},
-  Sizes: {}
-});
+const Button = _Button || BdApi.Components.Button;
 
 const Text = TextBase?.render ? TextBase : Object.values(TextBase)[0];
 
