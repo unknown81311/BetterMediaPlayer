@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.17
+ * @version 1.2.18
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -939,14 +939,19 @@ module.exports = class BetterMediaPlayer {
       if (that.props.type !== MediaControls.Types.VIDEO) return;
       if (!React.isValidElement(ret)) return;
 
-      let type = cache.get(ret.type);
+      let type = cache.get(that);
 
       if (!type && ret.type.prototype?.isReactComponent) {
         class Controls extends ret.type {
           render() {
             const render = super.render();
 
-            try {
+            try {              
+              render.ref = this._bmp;
+            }
+            catch {}
+
+            try {              
               render.props.children.splice(1, 0, React.createElement(LoopButton, { mediaRef: that.mediaRef }));
               render.props.children.splice(-1, 0, React.createElement(PIPButton, { mediaRef: that.mediaRef }));
             }
@@ -956,8 +961,7 @@ module.exports = class BetterMediaPlayer {
           }
         }
 
-        cache.set(ret.type, Controls);
-        cache.set(Controls, Controls);
+        cache.set(that, Controls);
 
         type = Controls;
       }
