@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.19
+ * @version 1.2.20
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -935,9 +935,88 @@ function PIPButton({ mediaRef }) {
   })
 }
 
+const getMinWidth = () => (!isNaN(MediaControls.minWidth) ? MediaControls.minWidth : 150) + 64;
+const [useMinimumWidth, addMinimumWidthListener] = (() => {
+  const listeners = new Set();
+  
+  return [
+    function useMinimumWidth() {
+      const [ minWidth, setMinWidth ] = React.useState(() => Data.load("minimum-width") ?? getMinWidth());
+    
+      React.useLayoutEffect(() => {
+        function listener(minWidth) {
+          setMinWidth(minWidth);
+        };
+    
+        listeners.add(listener);
+        return () => void listeners.delete(listener);
+      }, [ ]);
+
+      function setMinWidthS(minWidth) {
+        Data.save("minimum-width", minWidth);
+        for (const listener of listeners) listener(minWidth);
+      };
+    
+      return [ minWidth, setMinWidthS ];
+    },
+    (cb) => {
+        function listener(minWidth) {
+          cb(minWidth);
+        };
+    
+        listeners.add(listener);
+        return () => void listeners.delete(listener);
+      }
+  ];
+})();
+
+function Settings() {
+  const [ minWidth, setMinWidth ] = useMinimumWidth();
+
+  return React.createElement(BdApi.Components.SettingItem, {
+    name: "Minimum Width",
+    note: `Default is ${getMinWidth()}px`,
+    inline: true,
+    children: React.createElement(BdApi.Components.NumberInput, {
+      value: minWidth,
+      onChange: setMinWidth,
+      min: getMinWidth(),
+      max: 1e4
+    })
+  });
+}
+
 module.exports = class BetterMediaPlayer {
   start() {
     const cache = new WeakMap();
+
+    Patcher.instead(MediaControls.prototype, "getWidth", (that) => {
+      if (that.props.width === "100%") {
+        return that.props.width;
+      }      
+      
+      return Math.max(that.props.width, Data.load("minimum-width") ?? getMinWidth());
+    });
+
+    Patcher.after(MediaControls.prototype, "componentDidMount", (that) => {
+      if (!that.mediaRef.current) return;
+
+      that._BMP = addMinimumWidthListener(() => {
+        const aspectRatioNode = that.mediaRef.current.parentElement.parentElement;
+
+        aspectRatioNode.style.aspectRatio = `${that.getWidth() / that.getHeight()} / 1`;
+        aspectRatioNode.parentElement.style.width = `${that.getWidth()}px`;
+      });
+
+      const aspectRatioNode = that.mediaRef.current.parentElement.parentElement;
+
+      aspectRatioNode.style.aspectRatio = `${that.getWidth() / that.getHeight()} / 1`;
+      aspectRatioNode.parentElement.style.width = `${that.getWidth()}px`;
+    });
+
+    Patcher.after(MediaControls.prototype, "componentWillUnmount", (that) => {
+      that._BMP?.();
+    });
 
     Patcher.after(MediaControls.prototype, "renderControls", (that, [], ret) => {
       if (that.props.type !== MediaControls.Types.VIDEO) return;
@@ -1011,4 +1090,6 @@ module.exports = class BetterMediaPlayer {
       };
     };
   };
+
+  getSettingsPanel = () => React.createElement(Settings);
 };
