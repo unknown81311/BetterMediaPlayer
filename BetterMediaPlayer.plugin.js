@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.21
+ * @version 1.2.22
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -42,7 +42,7 @@ const [
 ] = Webpack.getBulk(
   { filter: m => m._ && m.debounce },
   { filter: m => m.getWindow },
-  { filter: m => m.subscribe && m.dispatch },
+  { filter: m => m.subscribe && m.dispatch, searchExports: true },
   { filter: Webpack.Filters.byStrings('"useStateFromStores"'), searchExports: true  },
   { filter: m => m.render?.toString().includes("Missing guestWindow reference") },
   { filter: m => m.wrapper && m.note },
