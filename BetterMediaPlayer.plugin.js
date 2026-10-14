@@ -1,6 +1,6 @@
 /**
  * @name BetterMediaPlayer
- * @version 1.2.22
+ * @version 1.2.23
  * @author unknown81311_&_Doggybootsy
  * @description Adds more features to the MediaPlayer inside of Discord. (**Only adds PIP and Loop!**)
  * @authorLink https://betterdiscord.app/plugin?id=377
@@ -27,7 +27,6 @@ const [
   InviteModalStore,
   native,
   GuildStore,
-  hljs,
   Guild,
   GuildMemberCountStore,
   VolumeSlider,
@@ -44,7 +43,7 @@ const [
   { filter: m => m.getWindow },
   { filter: m => m.subscribe && m.dispatch, searchExports: true },
   { filter: Webpack.Filters.byStrings('"useStateFromStores"'), searchExports: true  },
-  { filter: m => m.render?.toString().includes("Missing guestWindow reference") },
+  { filter: m => m.toString?.().includes("Missing guestWindow reference") },
   { filter: m => m.wrapper && m.note },
   { filter: m => m.errorPage },
   { filter: m => m.stack && Object.keys(m).length < 5 },
@@ -54,7 +53,6 @@ const [
   { filter: m => m.getName?.() === "InviteModalStore" },
   { filter: m => m.minimize && m.requireModule },
   { filter: m => m.getName?.() === "GuildStore" },
-  { filter: m => typeof m.highlight === "function" && typeof m.highlightAll === "function" },
   { filter: m => m.prototype?.getEveryoneRoleId && m.prototype.getIconURL },
   { filter: m => m.getName?.() === "GuildMemberCountStore" },
   { filter: Webpack.Filters.byStrings("sliderClassName:", "onDragEnd:this.handleDragEnd", "handleValueChange") },
@@ -399,7 +397,7 @@ function JoinGuild() {
 };
 
 function ErrorModal({ src, errorInfo }) {
-  const highlighted = React.useMemo(() => hljs.highlight(errorInfo.stack, { language: "js" }), [ ]);
+  const highlighted = React.useMemo(() => errorInfo.stack, [ ]);
 
   const [ copied, setCopied ] = React.useState(false);
 
